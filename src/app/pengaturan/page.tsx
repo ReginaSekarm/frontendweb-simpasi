@@ -7,6 +7,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import LengkapiProfilModal from '../../components/LengkapiProfilModal';
 import GantiKataSandiTab from '../../components/GantiKataSandiTab';
+import ProfilToast from '../../components/ProfilToast';
 
 // ================= TYPES =================
 type ProfilKader = {
@@ -17,103 +18,29 @@ type ProfilKader = {
   foto: string;
 };
 
-const DEFAULT_PROFIL: ProfilKader = {
-  nik: '-',
-  jenisKelamin: '-',
-  tanggalLahir: '-',
-  noHp: '-',
+// ================= DUMMY DATA =================
+const DUMMY_PROFIL: ProfilKader = {
+  nik: '3578011203890004',
+  jenisKelamin: 'Perempuan',
+  tanggalLahir: '12 Maret 1989',
+  noHp: '0812-3456-7890',
   foto: '',
 };
 
-// ================= TOAST COMPONENT =================
-function ProfilToast({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed top-[40px] right-[40px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-      style={{ width: '578.37px', height: '153.79px' }}
-      role="status"
-      aria-live="polite"
-    >
-      {/* Rectangle 410 — background hijau */}
-      <div
-        className="absolute"
-        style={{
-          left: 0,
-          top: 0,
-          width: '572.36px',
-          height: '153.79px',
-          background: '#2E9C52',
-          borderRadius: '20.0592px',
-        }}
-      />
+const DATA_PRIBADI = [
+  { label: 'NIK', value: '3578011203890004' },
+  { label: 'Jenis Kelamin', value: 'Perempuan' },
+  { label: 'Tanggal Lahir', value: '12 Maret 1989' },
+  { label: 'No.HP/WhatsApp', value: '0812-3456-7890' },
+  { label: 'Email', value: 'siti.amaliah@gmail.com', span: 2 },
+];
 
-      {/* Rectangle 411 — panel putih */}
-      <div
-        className="absolute"
-        style={{
-          left: '10.03px',
-          top: 0,
-          width: '562.33px',
-          height: '153.79px',
-          background: '#FFFFFF',
-          borderRadius: '20.0592px',
-        }}
-      />
-
-      {/* healthicons:yes — icon centang */}
-      <svg
-        className="absolute"
-        style={{
-          left: '30.76px',
-          top: '28.08px',
-          width: '44.49px',
-          height: '44.49px',
-        }}
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="12" fill="#2E9C52" />
-        <path
-          d="M6.8 12.5L10.4 16.1L17.2 9.3"
-          stroke="#FFFFFF"
-          strokeWidth="2.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </svg>
-
-      {/* Judul */}
-      <h3
-        className="absolute font-bold text-black"
-        style={{
-          left: '90.27px',
-          top: '29.42px',
-          fontSize: '21.3965px',
-          lineHeight: '26px',
-        }}
-      >
-        Profil Berhasil Disimpan
-      </h3>
-
-      {/* Deskripsi */}
-      <p
-        className="absolute"
-        style={{
-          left: '90.27px',
-          top: '62.18px',
-          width: '488.11px',
-          fontSize: '21.3965px',
-          lineHeight: '26px',
-          color: 'rgba(0, 0, 0, 0.71)',
-        }}
-      >
-        Profil disimpan sebagai. Anda bisa lanjutkan mengedit kapan saja dari Pengaturan.
-      </p>
-    </div>
-  );
-}
+const DATA_TUGAS = [
+  { label: 'Nama Posyandu', value: 'Posyandu Melati III' },
+  { label: 'Jabatan', value: 'Kader Gizi' },
+  { label: 'Wilayah', value: 'Kel. Lowokwaru, Kota Malang' },
+  { label: 'Tanggal Bergabung', value: '12 Maret 2022' },
+];
 
 // ================= MAIN CONTENT =================
 function PengaturanContent() {
@@ -125,26 +52,12 @@ function PengaturanContent() {
   const [showEdit, setShowEdit] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [activeTab, setActiveTab] = useState<'profil' | 'password'>('profil');
-  const [profil, setProfil] = useState<ProfilKader>(DEFAULT_PROFIL);
+  const [profil] = useState<ProfilKader>(DUMMY_PROFIL);
 
-  // Auto-buka modal kalau ?lengkapi=1
   useEffect(() => {
     if (lengkapiParam === '1') setShowLengkapi(true);
   }, [lengkapiParam]);
 
-  // Baca data profil dari localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('simpasi_profil_kader');
-    if (saved) {
-      try {
-        setProfil({ ...DEFAULT_PROFIL, ...JSON.parse(saved) });
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [showLengkapi, showEdit]);
-
-  // Auto-dismiss toast setelah 4 detik
   useEffect(() => {
     if (!showToast) return;
     const t = setTimeout(() => setShowToast(false), 4000);
@@ -166,125 +79,91 @@ function PengaturanContent() {
       <Sidebar activePage="pengaturan" />
 
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col">
-        <Topbar title="Pengaturan" titleColor="#D45060" />
+        <Topbar title="Pengaturan" titleColor="#000000" />
 
-        <div className="flex-1 overflow-y-auto px-[34px] pt-[34px] pb-8">
-          {/* TABS */}
-          <div className="w-[560px] h-[60px] bg-[#FEEB96] rounded-[14px] p-[6px] flex mb-[26px]">
-            <button
-              type="button"
-              onClick={() => setActiveTab('profil')}
-              className={`flex-1 rounded-[10px] font-semibold text-[19px] transition-colors cursor-pointer ${
-                activeTab === 'profil' ? 'bg-[#FFB803] text-black' : 'text-[#AAA6A6] hover:bg-[#FFE9A8]'
-              }`}
-            >
-              Profil
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('password')}
-              className={`flex-1 rounded-[10px] font-semibold text-[19px] transition-colors cursor-pointer ${
-                activeTab === 'password' ? 'bg-[#FFB803] text-black' : 'text-[#AAA6A6] hover:bg-[#FFE9A8]'
-              }`}
-            >
-              Ganti Kata Sandi
-            </button>
+        <div className="flex-1 overflow-y-auto px-[38px] pt-[25px] pb-8">
+          {/* ============ TABS ============ */}
+          <div className="w-[506px] h-[73px] bg-[#FEEB96] rounded-[17px] p-[8px] flex mb-[32px]">
+            {(['profil', 'password'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 rounded-[17px] font-semibold text-[22.5px] leading-[27px] transition-colors cursor-pointer ${
+                  activeTab === tab ? 'bg-[#FFB803] text-black' : 'text-[#AAA6A6]/80 hover:bg-[#FFE9A8]'
+                }`}
+              >
+                {tab === 'profil' ? 'Profil' : 'Ganti Kata Sandi'}
+              </button>
+            ))}
           </div>
 
           {activeTab === 'profil' && (
-            <div className="bg-white rounded-[14px] px-[42px] pt-[36px] pb-[42px] max-w-[1100px]">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-[30px]">
+            <div className="bg-white rounded-[17px] border border-[#AAA6A6]/70 px-[46px] pt-[31px] pb-[42px] max-w-[1026px]">
+              {/* ============ HEADER ============ */}
+              <div className="flex items-start justify-between mb-[42px]">
                 <div>
-                  <h1 className="text-[32px] font-bold text-black leading-tight">Profil Kader</h1>
-                  <p className="mt-[6px] text-[15px] text-[#8F8F8F]">
+                  <h1 className="text-[30px] font-bold text-black leading-tight">Profil Kader</h1>
+                  <p className="mt-[8px] text-[18px] font-bold text-black/50 leading-[22px]">
                     Lihat data diri dan tugas posyandu Anda
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowEdit(true)}
-                  className="flex items-center gap-[10px] h-[52px] px-[24px] bg-[#D45060] hover:bg-[#c44454] text-white font-bold text-[18px] rounded-[12px] transition-colors cursor-pointer"
+                  className="flex items-center gap-[12px] h-[57px] px-[28px] bg-[#D45060] hover:bg-[#c44454] text-white font-semibold text-[27px] rounded-[17px] transition-colors cursor-pointer"
                 >
-                  <Pencil className="w-[22px] h-[22px]" strokeWidth={2.2} />
+                  <Pencil className="w-[30px] h-[30px]" strokeWidth={2.2} />
                   <span>Edit Profil</span>
                 </button>
               </div>
 
-              {/* Avatar + Nama */}
-              <div className="flex items-center gap-[26px] mb-[28px]">
-                <div className="w-[130px] h-[130px] rounded-full overflow-hidden bg-white shrink-0">
+              {/* ============ AVATAR + NAMA ============ */}
+              <div className="flex items-center gap-[64px] mb-[44px]">
+                <div className="w-[169px] h-[169px] rounded-full overflow-hidden bg-[#D9D9D9] shrink-0">
                   {profil.foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={profil.foto} alt="Foto Profil" className="w-full h-full object-cover" />
                   ) : (
-                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                      <circle cx="100" cy="100" r="96" fill="#F2F2F2" stroke="#D9D9D9" strokeWidth="8" />
-                      <circle cx="100" cy="78" r="32" fill="#D9D9D9" />
-                      <path d="M 40 170 Q 40 120 100 120 Q 160 120 160 170 Z" fill="#D9D9D9" />
-                    </svg>
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src="/images/profil-kader.png"
+                      alt="Foto Profil"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                   )}
                 </div>
 
                 <div>
-                  <h2 className="text-[28px] font-bold text-black leading-tight">Siti Amaliah</h2>
-                  <span className="inline-flex items-center mt-[10px] h-[28px] px-[14px] bg-[#D9D9D9]/70 rounded-full text-[13px] font-bold text-[#5a5a5a]">
+                  <h2 className="text-[30px] font-semibold text-black leading-[37px]">Siti Amaliah</h2>
+                  <span className="inline-flex items-center mt-[14px] h-[38px] px-[16px] bg-[#D9D9D9]/70 rounded-[17px] text-[17px] font-bold text-[#1A7772] leading-[20px]">
                     Kader Aktif
                   </span>
-                  <p className="mt-[10px] text-[15px] text-[#8F8F8F]">Bergabung sejak 12 Maret 2022</p>
+                  <p className="mt-[14px] text-[18px] font-medium text-black/50 leading-[22px]">
+                    Bergabung sejak 12 Maret 2022
+                  </p>
                 </div>
               </div>
 
-              <div className="border-t border-[#D9D9D9] mb-[26px]" />
+              <div className="border-t border-black/50 mb-[36px]" />
 
-              {/* DATA PRIBADI */}
-              <h3 className="text-[#D45060] font-bold text-[14px] uppercase tracking-wide mb-[20px]">
-                Data Pribadi
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[60px] gap-y-[22px] mb-[36px]">
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">NIK</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">{profil.nik}</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Jenis Kelamin</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">{profil.jenisKelamin}</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Tanggal Lahir</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">{profil.tanggalLahir}</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">No.HP/WhatsApp</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">{profil.noHp}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-[14px] text-[#8F8F8F]">Email</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">siti.amaliah@gmail.com</p>
-                </div>
+              {/* ============ DATA PRIBADI ============ */}
+              <SectionTitle>Data Pribadi</SectionTitle>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[120px] gap-y-[42px] mb-[62px]">
+                {DATA_PRIBADI.map((item) => (
+                  <DataItem key={item.label} label={item.label} value={item.value} span={item.span} />
+                ))}
               </div>
 
-              {/* DATA TUGAS POSYANDU */}
-              <h3 className="text-[#D45060] font-bold text-[14px] uppercase tracking-wide mb-[20px]">
-                Data Tugas Posyandu
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[60px] gap-y-[22px]">
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Nama Posyandu</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">Posyandu Melati III</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Jabatan</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">Kader Gizi</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Wilayah</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">Kel. Lowokwaru, Kota Malang</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-[#8F8F8F]">Tanggal Bergabung</p>
-                  <p className="mt-[6px] text-[16px] font-bold text-black">12 Maret 2022</p>
-                </div>
+              {/* ============ DATA TUGAS POSYANDU ============ */}
+              <SectionTitle>Data Tugas Posyandu</SectionTitle>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[120px] gap-y-[42px]">
+                {DATA_TUGAS.map((item) => (
+                  <DataItem key={item.label} label={item.label} value={item.value} />
+                ))}
               </div>
             </div>
           )}
@@ -297,19 +176,31 @@ function PengaturanContent() {
         </div>
       </main>
 
-      {/* Modal LENGKAPI — mandatory, tanpa Batal, setelah Simpan → dashboard */}
       {showLengkapi && <LengkapiProfilModal onSaved={handleSavedLengkapi} />}
 
-      {/* Modal EDIT — dengan Batal, setelah Simpan → tetap di pengaturan + toast */}
       {showEdit && (
-        <LengkapiProfilModal
-          onSaved={handleSavedEdit}
-          onClose={() => setShowEdit(false)}
-        />
+        <LengkapiProfilModal onSaved={handleSavedEdit} onClose={() => setShowEdit(false)} />
       )}
 
-      {/* Toast Profil Berhasil Disimpan */}
       {showToast && <ProfilToast onClose={() => setShowToast(false)} />}
+    </div>
+  );
+}
+
+// ================= SUB-COMPONENTS =================
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[#D45060] font-bold text-[17px] uppercase tracking-wide mb-[26px] leading-[20px]">
+      {children}
+    </h3>
+  );
+}
+
+function DataItem({ label, value, span }: { label: string; value: string; span?: number }) {
+  return (
+    <div className={span === 2 ? 'md:col-span-2' : ''}>
+      <p className="text-[18px] font-medium text-black/50 leading-[22px]">{label}</p>
+      <p className="mt-[10px] text-[17px] font-bold text-black leading-[20px]">{value}</p>
     </div>
   );
 }

@@ -8,16 +8,17 @@ import type {
   StatusResepType,
   PemeriksaanForm,
   TambahResepForm,
+  KomentarResep,
 } from './_types';
 
-// ================= MOCK DATA =================
+// ================= DATA BALITA =================
 export const BALITA_DATA: Balita[] = [
   { id: 1, nama: 'Kentoz Albaiq', jenisKelamin: 'Laki - laki', usia: '10 bulan', tempatLahir: 'Denpasar', tanggalLahir: '01/12/2025', namaOrtu: 'Ajeng Febria', email: 'AjengFebria01@gmail.com', kondisi: 'Normal', terakhir: '12 September 2026' },
   { id: 2, nama: 'Alaia Putri', jenisKelamin: 'Perempuan', usia: '18 bulan', tempatLahir: 'Denpasar', tanggalLahir: '15/04/2024', namaOrtu: 'Siti Aminah', email: 'siti.aminah@gmail.com', kondisi: 'Berisiko', terakhir: '6 September 2026' },
   { id: 3, nama: 'Lilis Manoban', jenisKelamin: 'Perempuan', usia: '22 bulan', tempatLahir: 'Badung', tanggalLahir: '20/12/2023', namaOrtu: 'Rina Wati', email: 'rina.wati@gmail.com', kondisi: 'Berisiko', terakhir: '12 September 2026' },
 ];
 
-// ✅ Resep dengan detail lengkap (bahan, langkah, nutrisi, tips)
+// ================= DATA RESEP =================
 export const RESEP_DATA: Resep[] = [
   {
     id: 1,
@@ -32,6 +33,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '12',
     lemak: '1',
     tips: 'Simpan di kulkas maksimal 24 jam. Hangatkan sebelum disajikan.',
+    commentsCount: 0,
   },
   {
     id: 2,
@@ -46,6 +48,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '18',
     lemak: '8',
     tips: 'Gunakan pisang yang matang untuk rasa manis alami. Bisa disimpan 1x24 jam.',
+    commentsCount: 1,
   },
   {
     id: 3,
@@ -60,6 +63,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '22',
     lemak: '4',
     tips: 'Hati ayam kaya zat besi, bagus untuk mencegah anemia. Sajikan hangat.',
+    commentsCount: 1,
   },
   {
     id: 4,
@@ -74,6 +78,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '28',
     lemak: '7',
     tips: 'Cocok sebagai finger food untuk melatih motorik halus.',
+    commentsCount: 2, // ✅ 2 komentar (Woww + Uni)
   },
   {
     id: 5,
@@ -88,6 +93,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '24',
     lemak: '8',
     tips: 'Bisa disimpan di kulkas 1x24 jam. Cocok untuk sarapan.',
+    commentsCount: 0,
   },
   {
     id: 6,
@@ -102,8 +108,26 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '10',
     lemak: '5',
     tips: 'Kaya protein untuk tumbuh kembang. Bisa jadi finger food.',
+    commentsCount: 0,
   },
 ];
+
+// ================= KOMENTAR PER RESEP =================
+export const KOMENTAR_PER_RESEP: Record<number, KomentarResep[]> = {
+  1: [],
+  2: [
+    { id: 1, nama: 'Ibu Dewi', waktu: '1 hari lalu', text: 'Ini resep favorit anakku, makasih ya Bu!' },
+  ],
+  3: [
+    { id: 1, nama: 'Ibu Ratna', waktu: '2 jam lalu', text: 'Anak saya suka sekali resep ini! Tapi bisa nggak hati ayamnya diganti hati sapi?' },
+  ],
+  4: [
+    { id: 1, nama: 'Wowo', waktu: '1 hari lalu', text: 'Sebelum dihaluskan, ubi ungu perlu didiamkan sampai dingin dulu atau langsung dihaluskan selagi panas?' },
+    { id: 2, nama: 'Uni', waktu: '1 hari lalu', text: 'Dirumah cuma ada kimpul, ubi ungu nya bisa diganti kimpul aja ga bun? Tolong dijawab ya' },
+  ],
+  5: [],
+  6: [],
+};
 
 // ================= RIWAYAT PEMERIKSAAN =================
 export const RIWAYAT_MAP: Record<number, RiwayatPemeriksaan[]> = {

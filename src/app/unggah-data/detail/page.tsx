@@ -16,6 +16,7 @@ import Topbar from '../../../components/Topbar';
 import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../_types';
 import {
   BALITA_DATA,
+  RIWAYAT_MAP,
   EMPTY_PEMERIKSAAN,
   KONDISI_STYLE,
   KONDISI_DOT,
@@ -24,53 +25,19 @@ import {
 import Toast from '../_components/Toast';
 import PemeriksaanModal from '../_components/PemeriksaanModal';
 import ConfirmDeleteModal from './_components/ConfirmDeleteModal';
-import {
-  loadJSON,
-  saveJSON,
-  addAktivitas,
-  KEY_BALITA,
-  KEY_RIWAYAT,
-} from '../../../lib/simpasi-store';
-
-// ✅ Type lengkap — tambah kondisi, bb, tb, lk, lila, terakhir
-type BalitaLite = {
-  id: number;
-  nama: string;
-  jenisKelamin: 'Laki - laki' | 'Perempuan';
-  usia: string;
-  tempatLahir: string;
-  tanggalLahir: string;
-  namaOrtu: string;
-  email: string;
-  kondisi?: string;
-  bb?: string;
-  tb?: string;
-  lk?: string;
-  lila?: string;
-  terakhir?: string;
-};
 
 function DetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const balitaIdParam = searchParams.get('balitaId');
 
-  // ✅ Baca balita dari localStorage
-  const [balita, setBalita] = useState<BalitaLite>(
-    (BALITA_DATA.find((b) => b.id === Number(balitaIdParam)) as BalitaLite) || (BALITA_DATA[0] as BalitaLite)
+  // ✅ Balita dari DUMMY (BALITA_DATA)
+  const balita = BALITA_DATA.find((b) => b.id === Number(balitaIdParam)) || BALITA_DATA[0];
+
+  // ✅ Riwayat dari DUMMY (RIWAYAT_MAP) — state lokal, biar bisa nambah/edit/hapus
+  const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>(
+    RIWAYAT_MAP[balita.id] || []
   );
-
-  useEffect(() => {
-    const savedBalita = loadJSON<BalitaLite[] | null>(KEY_BALITA, null);
-    if (savedBalita && Array.isArray(savedBalita)) {
-      const found = savedBalita.find((b) => b.id === Number(balitaIdParam));
-      if (found) setBalita(found);
-    }
-  }, [balitaIdParam]);
-
-  // ✅ Riwayat mulai dari KOSONG — akan di-seed kalau balita punya kondisi
-  const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const [periksaOpen, setPeriksaOpen] = useState(false);
   const [periksaForm, setPeriksaForm] = useState<PemeriksaanForm>(EMPTY_PEMERIKSAAN);
@@ -79,54 +46,6 @@ function DetailContent() {
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [deleteTarget, setDeleteTarget] = useState<RiwayatPemeriksaan | null>(null);
-
-  // ✅ LOAD riwayat dari localStorage + SEED kalau perlu
-  useEffect(() => {
-    setIsLoaded(false);
-
-    const allRiwayat = loadJSON<Record<string, RiwayatPemeriksaan[]>>(KEY_RIWAYAT, {});
-    const saved = allRiwayat[String(balita.id)];
-
-    if (Array.isArray(saved) && saved.length > 0) {
-      // Sudah ada di localStorage → pakai itu
-      setRiwayat(saved);
-    } else if (balita.kondisi && balita.kondisi !== 'Belum Diperiksa') {
-      // ✅ SEED: balita punya kondisi (Berisiko/Normal/Stunting) tapi belum ada riwayat
-      // → bikin 1 riwayat default dari data balita
-      const seeded: RiwayatPemeriksaan = {
-        id: Date.now(),
-        tanggal: balita.terakhir || '12 September 2026',
-        bb: balita.bb || '-',
-        tb: balita.tb || '-',
-        lk: balita.lk || '-',
-        lila: balita.lila || '-',
-        kondisi: balita.kondisi as 'Belum Diperiksa' | 'Normal' | 'Berisiko' | 'Stunting',
-        catatan: '-',
-        bahanMakanan: [],
-        canEdit: true,
-      };
-      setRiwayat([seeded]);
-    } else {
-      // Belum Diperiksa → kosong
-      setRiwayat([]);
-    }
-
-    setIsLoaded(true);
-  }, [balita.id, balita.kondisi, balita.bb, balita.tb, balita.lk, balita.lila, balita.terakhir]);
-
-  // ✅ SAVE riwayat ke localStorage
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const allRiwayat = loadJSON<Record<string, RiwayatPemeriksaan[]>>(KEY_RIWAYAT, {});
-
-    if (riwayat.length > 0) {
-      allRiwayat[String(balita.id)] = riwayat;
-    } else {
-      delete allRiwayat[String(balita.id)];
-    }
-    saveJSON(KEY_RIWAYAT, allRiwayat);
-  }, [riwayat, balita.id, isLoaded]);
 
   useEffect(() => {
     if (!toast?.visible) return;
@@ -183,13 +102,6 @@ function DetailContent() {
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
     setRiwayat((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-
-    addAktivitas({
-      type: 'pemeriksaan',
-      description: `Menghapus pemeriksaan "${balita.nama}" (${balita.usia})`,
-      status: 'Draft',
-    });
-
     setDeleteTarget(null);
     setToast({
       visible: true,
@@ -249,12 +161,6 @@ function DetailContent() {
 
       setRiwayat((prev) => [newItem, ...prev]);
 
-      addAktivitas({
-        type: 'pemeriksaan',
-        description: `Memeriksa "${balita.nama}" (${balita.usia})`,
-        status: periksaForm.kondisi || 'Normal',
-      });
-
       setToast({
         visible: true,
         type: 'success',
@@ -283,12 +189,6 @@ function DetailContent() {
         );
       }
 
-      addAktivitas({
-        type: 'pemeriksaan',
-        description: `Memperbarui pemeriksaan "${balita.nama}" (${balita.usia})`,
-        status: periksaForm.kondisi || 'Normal',
-      });
-
       setToast({
         visible: true,
         type: 'success',
@@ -305,12 +205,6 @@ function DetailContent() {
     if (confirm('Yakin ingin menghapus data pemeriksaan ini?')) {
       if (editTargetId !== null) {
         setRiwayat((prev) => prev.filter((r) => r.id !== editTargetId));
-
-        addAktivitas({
-          type: 'pemeriksaan',
-          description: `Menghapus pemeriksaan "${balita.nama}" (${balita.usia})`,
-          status: 'Draft',
-        });
       }
       setPeriksaOpen(false);
       setEditTargetId(null);

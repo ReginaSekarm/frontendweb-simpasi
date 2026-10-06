@@ -14,7 +14,6 @@ import Toast from './_components/Toast';
 import ConfirmDeleteModal from './_components/ConfirmDeleteModal';
 import BalitaFormModal from './_components/BalitaFormModal';
 import PemeriksaanModal from './_components/PemeriksaanModal';
-import { loadJSON, saveJSON, addAktivitas, KEY_BALITA } from '../../lib/simpasi-store';
 
 export default function DataBalitaPage() {
   const router = useRouter();
@@ -25,9 +24,9 @@ export default function DataBalitaPage() {
   const [formData, setFormData] = useState<BalitaForm>(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
 
+  // Data dummy 
   const [balitaList, setBalitaList] = useState<Balita[]>(BALITA_DATA);
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const [periksaOpen, setPeriksaOpen] = useState(false);
   const [periksaBalita, setPeriksaBalita] = useState<Balita | null>(null);
@@ -53,21 +52,6 @@ export default function DataBalitaPage() {
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
-
-  // ===== LOAD dari localStorage — SEKALI AJA saat mount =====
-  useEffect(() => {
-    const saved = loadJSON<Balita[] | null>(KEY_BALITA, null);
-    if (saved && Array.isArray(saved) && saved.length > 0) {
-      setBalitaList(saved);
-    }
-    setIsLoaded(true);
-  }, []);
-
-  // ===== SAVE ke localStorage — hanya kalau sudah loaded =====
-  useEffect(() => {
-    if (!isLoaded) return;
-    saveJSON(KEY_BALITA, balitaList);
-  }, [balitaList, isLoaded]);
 
   const filteredData = selectedFilter === 'Semua' ? balitaList : balitaList.filter((b) => b.kondisi === selectedFilter);
 
@@ -141,13 +125,6 @@ export default function DataBalitaPage() {
 
       setBalitaList((prev) => [newBalita, ...prev]);
 
-      // ✅ LOG AKTIVITAS: tambah
-      addAktivitas({
-        type: 'balita',
-        description: `Menambahkan balita "${formData.nama}"`,
-        status: formData.kondisi || 'Belum Diperiksa',
-      });
-
       setToast({
         visible: true,
         type: 'success',
@@ -178,13 +155,6 @@ export default function DataBalitaPage() {
           )
         );
       }
-
-      // ✅ LOG AKTIVITAS: edit
-      addAktivitas({
-        type: 'balita',
-        description: `Memperbarui data balita "${formData.nama}"`,
-        status: formData.kondisi || 'Belum Diperiksa',
-      });
 
       setToast({
         visible: true,
@@ -257,18 +227,9 @@ export default function DataBalitaPage() {
   // ===== Eksekusi hapus =====
   const executeDelete = () => {
     if (confirmDelete === 'balita') {
-      const target = balitaList.find((b) => b.id === editTargetId);
-
       if (editTargetId !== null) {
         setBalitaList((prev) => prev.filter((b) => b.id !== editTargetId));
       }
-
-      // ✅ LOG AKTIVITAS: hapus balita
-      addAktivitas({
-        type: 'balita',
-        description: `Menghapus data balita${target ? ` "${target.nama}"` : ''}`,
-        status: 'Draft',
-      });
 
       setFormOpen(false);
       setConfirmDelete(null);

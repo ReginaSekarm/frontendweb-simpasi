@@ -13,7 +13,7 @@ export type Aktivitas = {
 export function loadJSON<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key); // ✅ localStorage → sessionStorage
     return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
@@ -22,7 +22,7 @@ export function loadJSON<T>(key: string, fallback: T): T {
 
 export function saveJSON<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(value));
+  sessionStorage.setItem(key, JSON.stringify(value)); // ✅ localStorage → sessionStorage
 }
 
 export function loadAktivitas(): Aktivitas[] {

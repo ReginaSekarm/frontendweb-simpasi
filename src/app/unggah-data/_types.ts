@@ -18,6 +18,7 @@ export type Resep = {
   karbohidrat?: string;
   lemak?: string;
   tips?: string;
+  commentsCount?: number;
 };
 
 export type UsiaResepType = '6-8 bulan' | '9-11 bulan' | '12-24 bulan' | '24+ bulan';
@@ -34,6 +35,14 @@ export type TambahResepForm = {
   lemak: string;
   kalori: string;
   tips: string;
+};
+
+// ✅ Type komentar — DI SINI, bukan di _data.ts
+export type KomentarResep = {
+  id: number;
+  nama: string;
+  waktu: string;
+  text: string;
 };
 
 export type Balita = {

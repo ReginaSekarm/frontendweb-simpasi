@@ -10,10 +10,23 @@ import {
 } from 'lucide-react';
 
 // ================= TYPES =================
-export type ActivePage = 'dashboard' | 'data-balita' | 'unggah-data' | 'pengaturan';
+export type ActivePage =
+  | 'dashboard'
+  | 'data-balita'
+  | 'unggah-data'
+  | 'notifikasi'
+  | 'pengaturan';
 
 type SidebarProps = {
   activePage: ActivePage;
+};
+
+type MenuItem = {
+  key: ActivePage;
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  badge?: number;
 };
 
 // ================= NAV =================
@@ -21,12 +34,7 @@ const NAV_BASE =
   'flex items-center h-[47px] pl-[16px] gap-[27px] rounded-l-full font-semibold text-[24px] transition-colors';
 
 // ================= MENU ITEMS =================
-const MENU_ITEMS: {
-  key: ActivePage;
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-}[] = [
+const MENU_ITEMS: MenuItem[] = [
   { key: 'dashboard',   href: '/dashboard',   label: 'Dashboard',   icon: LayoutDashboard },
   { key: 'data-balita', href: '/data-balita', label: 'Data Balita', icon: Users },
   { key: 'unggah-data', href: '/unggah-data', label: 'Unggah Data', icon: CloudUpload },
@@ -66,18 +74,13 @@ export default function Sidebar({ activePage }: SidebarProps) {
               key={item.key}
               href={item.href}
               className={`${NAV_BASE} ${
-                isActive
-                  ? 'bg-[#B3EAE8] text-[#1A7772]'
-                  : 'text-white hover:bg-white/10'
+                isActive ? 'bg-[#B3EAE8] text-[#1A7772]' : 'text-white hover:bg-white/10'
               }`}
             >
-              <span className="w-[34px] flex justify-center shrink-0">
-                <Icon
-                  className="w-[28px] h-[28px]"
-                  strokeWidth={isActive ? 2.4 : 2.2}
-                />
+              <span className="w-[34px] flex justify-center shrink-0 relative">
+                <Icon className="w-[28px] h-[28px]" strokeWidth={isActive ? 2.4 : 2.2} />
               </span>
-              <span>{item.label}</span>
+              <span className="flex-1 pr-[20px]">{item.label}</span>
             </Link>
           );
         })}
