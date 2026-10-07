@@ -78,7 +78,7 @@ export const RESEP_DATA: Resep[] = [
     karbohidrat: '28',
     lemak: '7',
     tips: 'Cocok sebagai finger food untuk melatih motorik halus.',
-    commentsCount: 2, // ✅ 2 komentar (Woww + Uni)
+    commentsCount: 2,
   },
   {
     id: 5,
@@ -146,7 +146,15 @@ export const RIWAYAT_MAP: Record<number, RiwayatPemeriksaan[]> = {
 // ================= CONSTANTS =================
 export const FILTER_RESEP_OPTIONS: FilterResepType[] = ['Semua', 'Draft', 'Terpublikasi'];
 
-export const USIA_RESEP_OPTIONS: UsiaResepType[] = ['6-8 bulan', '9-11 bulan', '12-24 bulan', '24+ bulan'];
+export const USIA_RESEP_OPTIONS: UsiaResepType[] = ['6 bulan', '7-8 bulan', '9-11 bulan', '12+ bulan'];
+
+// 👇 BARU — Label untuk display di chips (sesuai Figma)
+export const USIA_RESEP_LABELS: Record<UsiaResepType, string> = {
+  '6 bulan': '6 Bulan',
+  '7-8 bulan': '7 - 8 Bulan',
+  '9-11 bulan': '9 - 11 Bulan',
+  '12+ bulan': '12 Bulan +',
+};
 
 export const KONDISI_STYLE: Record<KondisiType, string> = {
   'Belum Diperiksa': 'bg-[#8F8F8F]/80 text-white',
@@ -184,10 +192,11 @@ export const BAHAN_MAKANAN_LIST = [
 ];
 
 // ================= HELPERS =================
+// 👇 FIXED — hilangkan '24+ bulan' yang tidak ada di enum UsiaResepType
 export function mapUsiaKeForm(usia: string): UsiaResepType | '' {
-  if (usia.includes('24+')) return '24+ bulan';
-  if (usia.includes('12')) return '12-24 bulan';
+  if (usia.includes('12') || usia.includes('24')) return '12+ bulan';
   if (usia.includes('9') || usia.includes('11')) return '9-11 bulan';
-  if (usia.includes('6') || usia.includes('7') || usia.includes('8')) return '6-8 bulan';
+  if (usia.includes('7') || usia.includes('8')) return '7-8 bulan';
+  if (usia.includes('6')) return '6 bulan';
   return '';
 }

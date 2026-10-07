@@ -21,7 +21,7 @@ export type Resep = {
   commentsCount?: number;
 };
 
-export type UsiaResepType = '6-8 bulan' | '9-11 bulan' | '12-24 bulan' | '24+ bulan';
+export type UsiaResepType = '6 bulan' | '7-8 bulan' | '9-11 bulan' | '12+ bulan';
 
 export type TambahResepForm = {
   image: File | null;

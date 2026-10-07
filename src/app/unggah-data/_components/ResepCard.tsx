@@ -12,7 +12,14 @@ type Props = {
 };
 
 export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: Props) {
-  const commentCount = resep.commentsCount ?? 0;
+  // 👇 Kalau Draft → anggap 0 komentar, dan tombol disabled
+  const isDraft = resep.status === 'Draft';
+  const commentCount = isDraft ? 0 : (resep.commentsCount ?? 0);
+
+  const handleCommentClick = () => {
+    if (isDraft) return; // draft tidak bisa dikomentar
+    onCommentClick(resep);
+  };
 
   return (
     <div className="bg-white border border-[#8F8F8F] rounded-[11px] overflow-hidden flex flex-col w-full">
@@ -49,19 +56,31 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
           </span>
         </div>
 
-        {/* ✅ Baris bawah: icon komentar (kiri) + edit/hapus (kanan) */}
+        {/* Baris bawah: icon komentar (kiri) + edit/hapus (kanan) */}
         <div className="flex items-center justify-between mt-[2px]">
-          {/* Tombol komentar — bulat */}
+          {/* Tombol komentar — disabled kalau Draft */}
           <button
             type="button"
-            onClick={() => onCommentClick(resep)}
-            aria-label={`Lihat komentar ${resep.nama}`}
-            className="relative w-[30px] h-[30px] rounded-full bg-[#F5F5F5] hover:bg-[#E8E8E8] flex items-center justify-center shadow-[0px_4px_4px_rgba(0,0,0,0.15)] transition-colors cursor-pointer"
+            onClick={handleCommentClick}
+            disabled={isDraft}
+            aria-label={
+              isDraft
+                ? `Komentar tidak tersedia untuk resep draft`
+                : `Lihat komentar ${resep.nama}`
+            }
+            className={`relative w-[30px] h-[30px] rounded-full flex items-center justify-center shadow-[0px_4px_4px_rgba(0,0,0,0.15)] transition-colors ${
+              isDraft
+                ? 'bg-[#F5F5F5]/60 cursor-not-allowed opacity-40'
+                : 'bg-[#F5F5F5] hover:bg-[#E8E8E8] cursor-pointer'
+            }`}
           >
-            <MessageCircle className="w-[14px] h-[14px] text-black" strokeWidth={2.2} />
+            <MessageCircle
+              className={`w-[14px] h-[14px] ${isDraft ? 'text-[#8F8F8F]' : 'text-black'}`}
+              strokeWidth={2.2}
+            />
 
-            {/* Badge angka komentar */}
-            {commentCount > 0 && (
+            {/* Badge angka komentar — hanya tampil kalau bukan Draft & ada count */}
+            {!isDraft && commentCount > 0 && (
               <span className="absolute -top-[3px] -right-[3px] min-w-[14px] h-[14px] px-[3px] rounded-full bg-[#D45060] text-white font-semibold text-[9px] leading-none flex items-center justify-center">
                 {commentCount}
               </span>

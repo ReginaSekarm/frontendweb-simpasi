@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { ImagePlus } from 'lucide-react';
 import type { TambahResepForm } from '../_types';
-import { USIA_RESEP_OPTIONS } from '../_data';
+import { USIA_RESEP_OPTIONS, USIA_RESEP_LABELS } from '../_data';
 
 type Props = {
   data: TambahResepForm;
@@ -86,7 +86,7 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
                       isActive ? 'bg-[#D45060] text-white' : 'bg-[#D9D9D9]/50 text-[#AAA6A6]/50 hover:bg-[#D9D9D9]/70'
                     }`}
                   >
-                    {usia}
+                    {USIA_RESEP_LABELS[usia]}
                   </button>
                 );
               })}
