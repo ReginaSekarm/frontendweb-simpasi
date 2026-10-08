@@ -6,7 +6,7 @@ import { MessageCircle, Check } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import type { NotifType, Notifikasi } from './_types';
-import { DUMMY_NOTIFIKASI } from './_data';
+import { DUMMY_NOTIFIKASI } from './data';
 
 // ================= ICON MAP =================
 const ICON_MAP: Record<NotifType, { Icon: typeof MessageCircle; bg: string; color: string }> = {

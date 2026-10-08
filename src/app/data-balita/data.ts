@@ -4,7 +4,7 @@ import type {
   PemeriksaanForm,
   KondisiType,
   FilterType,
-} from './_types';
+} from './types';
 
 // ================= MOCK DATA =================
 export const BALITA_DATA: Balita[] = [

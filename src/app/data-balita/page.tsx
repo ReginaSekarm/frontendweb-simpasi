@@ -7,8 +7,8 @@ import { CaretDown } from '@phosphor-icons/react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 
-import type { Balita, BalitaForm, PemeriksaanForm, FilterType, ToastState, ConfirmDeleteType } from './_types';
-import { BALITA_DATA, FILTER_OPTIONS, KONDISI_STYLE, EMPTY_FORM, EMPTY_PEMERIKSAAN } from './_data';
+import type { Balita, BalitaForm, PemeriksaanForm, FilterType, ToastState, ConfirmDeleteType } from './types';
+import { BALITA_DATA, FILTER_OPTIONS, KONDISI_STYLE, EMPTY_FORM, EMPTY_PEMERIKSAAN } from './data';
 
 import Toast from './_components/Toast';
 import ConfirmDeleteModal from './_components/ConfirmDeleteModal';

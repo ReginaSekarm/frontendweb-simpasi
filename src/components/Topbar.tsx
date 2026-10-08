@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { CircleUserRound, Bell, MessageCircle, Info } from 'lucide-react';
-import { DUMMY_NOTIFIKASI } from '../app/notifikasi/_data';
+import { DUMMY_NOTIFIKASI } from '../app/notifikasi/data';
 
 // ================= TYPES =================
 type TopbarProps = {

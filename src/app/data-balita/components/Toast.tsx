@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle2, Trash2, AlertTriangle } from 'lucide-react';
-import type { ToastType } from '../_types';
+import type { ToastType } from '../types';
 
 type Props = {
   type: ToastType;

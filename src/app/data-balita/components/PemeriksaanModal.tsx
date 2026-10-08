@@ -1,8 +1,8 @@
 'use client';
 
 import { Calendar, Check, Trash2 } from 'lucide-react';
-import type { Balita, PemeriksaanForm } from '../_types';
-import { BAHAN_MAKANAN_LIST } from '../_data';
+import type { Balita, PemeriksaanForm } from '../types';
+import { BAHAN_MAKANAN_LIST } from '../data';
 
 type Props = {
   balita: Balita;

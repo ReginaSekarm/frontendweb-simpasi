@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, Calendar } from 'lucide-react';
-import type { BalitaForm } from '../_types';
+import type { BalitaForm } from '../types';
 
 type Props = {
   mode: 'add' | 'edit';
