@@ -31,10 +31,10 @@ function DetailContent() {
   const searchParams = useSearchParams();
   const balitaIdParam = searchParams.get('balitaId');
 
-  // ✅ Balita dari DUMMY (BALITA_DATA)
+  // Balita dari DUMMY (BALITA_DATA)
   const balita = BALITA_DATA.find((b) => b.id === Number(balitaIdParam)) || BALITA_DATA[0];
 
-  // ✅ Riwayat dari DUMMY (RIWAYAT_MAP) — state lokal, biar bisa nambah/edit/hapus
+  // Riwayat dari DUMMY (RIWAYAT_MAP) — state lokal, biar bisa nambah/edit/hapus
   const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>(
     RIWAYAT_MAP[balita.id] || []
   );

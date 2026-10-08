@@ -26,7 +26,7 @@ const ICON_MAP: Record<NotifType, { Icon: typeof MessageCircle; bg: string; colo
 };
 
 // ================= HELPER =================
-// ✅ Bikin href dinamis: kalau notif komentar → direct ke resep, kalau sistem → ke /notifikasi
+// Bikin href dinamis: kalau notif komentar → direct ke resep, kalau sistem → ke /notifikasi
 function getNotifHref(n: { type: NotifType; resepId?: number }): string {
   if (n.type === 'komentar' && n.resepId) {
     return `/unggah-data?tab=Resep&resepId=${n.resepId}`;

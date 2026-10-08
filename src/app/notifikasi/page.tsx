@@ -30,7 +30,7 @@ export default function NotifikasiPage() {
   const handleOpenNotif = (n: Notifikasi) => {
     setNotif((prev) => prev.map((x) => (x.id === n.id ? { ...x, dibaca: true } : x)));
 
-    // ✅ Komentar → langsung ke halaman resep dengan modal terbuka
+    // Komentar langsung ke halaman resep dengan modal terbuka
     if (n.resepId) {
       router.push(`/unggah-data?tab=Resep&resepId=${n.resepId}`);
     }

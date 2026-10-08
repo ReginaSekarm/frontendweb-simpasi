@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
     return;
   }
   console.log({ email, password, rememberMe });
-  // ✅ Redirect ke pengaturan untuk lengkapi profil dulu
+  // Redirect ke pengaturan untuk lengkapi profil dulu
   router.push('/pengaturan?lengkapi=1');
 };
 
@@ -47,9 +47,9 @@ export default function AdminLoginPage() {
             <h1 className="text-center text-[30.9px] font-bold text-[#D45060] leading-[37px]">
               SiMPASI
             </h1>
-            <p className="mt-[9px] text-center text-[13.6px] font-medium text-black leading-[16px] max-w-[240px] mx-auto sm:mx-0 sm:ml-[123px]">
-              Sistem Informasi Mencegah Stunting<br />
-              Silahkan masuk ke akun Anda
+            <p className="mt-[6px] text-center text-[13.6px] font-medium text-black leading-[16px] max-w-[240px] mx-auto">
+            Sistem Informasi Mencegah Stunting<br />
+            Silahkan masuk ke akun Anda
             </p>
           </div>
 
@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full h-[49.44px] pl-[18.5px] pr-14 rounded-[6.18px] border-[1.24px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[14.8px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
+                  className="w-full h-[49.44px] pl-[18.5px] pr-14 rounded-[6.18px] border-[1.24px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[14.8px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <button
                   type="button"

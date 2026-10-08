@@ -148,7 +148,7 @@ export const FILTER_RESEP_OPTIONS: FilterResepType[] = ['Semua', 'Draft', 'Terpu
 
 export const USIA_RESEP_OPTIONS: UsiaResepType[] = ['6 bulan', '7-8 bulan', '9-11 bulan', '12+ bulan'];
 
-// 👇 BARU — Label untuk display di chips (sesuai Figma)
+// BARU, Label untuk display di chips (sesuai Figma)
 export const USIA_RESEP_LABELS: Record<UsiaResepType, string> = {
   '6 bulan': '6 Bulan',
   '7-8 bulan': '7 - 8 Bulan',
@@ -192,7 +192,7 @@ export const BAHAN_MAKANAN_LIST = [
 ];
 
 // ================= HELPERS =================
-// 👇 FIXED — hilangkan '24+ bulan' yang tidak ada di enum UsiaResepType
+// FIXED, hilangkan '24+ bulan' yang tidak ada di enum UsiaResepType
 export function mapUsiaKeForm(usia: string): UsiaResepType | '' {
   if (usia.includes('12') || usia.includes('24')) return '12+ bulan';
   if (usia.includes('9') || usia.includes('11')) return '9-11 bulan';

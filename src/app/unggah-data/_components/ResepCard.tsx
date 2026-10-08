@@ -12,7 +12,7 @@ type Props = {
 };
 
 export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: Props) {
-  // 👇 Kalau Draft → anggap 0 komentar, dan tombol disabled
+  // Kalau Draft, anggap 0 komentar, dan tombol disabled
   const isDraft = resep.status === 'Draft';
   const commentCount = isDraft ? 0 : (resep.commentsCount ?? 0);
 

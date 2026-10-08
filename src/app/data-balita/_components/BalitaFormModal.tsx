@@ -122,7 +122,7 @@ export default function BalitaFormModal({ mode, data, errors, onChange, onClose,
       <p className="mt-1 text-[13px] text-[#D45060] font-semibold">Wajib Diisi</p>
     ) : null;
 
-  // ✅ Klik Batal → tampilkan konfirmasi
+  // Klik Batal → tampilkan konfirmasi
   const handleBatalClick = () => setShowBatalConfirm(true);
 
   const handleKonfirmasiBatal = () => {
