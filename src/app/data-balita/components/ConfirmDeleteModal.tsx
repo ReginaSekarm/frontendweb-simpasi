@@ -14,26 +14,38 @@ export default function ConfirmDeleteModal({ type, onCancel, onConfirm }: Props)
     : 'Data balita akan dihapus permanen dari sistem dan tidak bisa dikembalikan. Pastikan data ini memang sudah tidak diperlukan.';
 
   return (
-    <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 p-4" onClick={onCancel}>
+    <div
+      className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 p-3 sm:p-4"
+      onClick={onCancel}
+    >
+      {/* 👇 Modal responsive: padding & max-width menyesuaikan layar */}
       <div
-        className="relative w-full max-w-[720px] bg-white rounded-[24px] shadow-2xl px-[60px] pt-[60px] pb-[52px]"
+        className="relative w-full max-w-[520px] bg-white rounded-[14px] sm:rounded-[16px] shadow-2xl px-5 sm:px-[40px] pt-7 sm:pt-[40px] pb-6 sm:pb-[36px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-center text-black font-bold text-[40px] leading-[1.15]">{title}</h2>
-        <p className="mt-[28px] text-center text-black text-[26px] leading-[1.35] font-normal">{description}</p>
+        {/* 👇 Judul responsive */}
+        <h2 className="text-center text-black font-bold text-[18px] sm:text-[24px] leading-[1.25] sm:leading-[1.2]">
+          {title}
+        </h2>
 
-        <div className="mt-[44px] flex items-center justify-center gap-[44px]">
+        {/* 👇 Deskripsi responsive */}
+        <p className="mt-3 sm:mt-[16px] text-center text-black text-[13px] sm:text-[15px] leading-[1.5] sm:leading-[1.4] font-normal">
+          {description}
+        </p>
+
+        {/* 👇 Tombol: stack vertikal di mobile, horizontal di desktop */}
+        <div className="mt-6 sm:mt-[32px] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-[24px]">
           <button
             type="button"
             onClick={onCancel}
-            className="min-w-[280px] h-[76px] px-[44px] bg-[#D9D9D9] hover:bg-[#c9c9c9] rounded-[14px] text-[#8F8F8F] font-bold text-[30px] transition-colors cursor-pointer"
+            className="w-full sm:min-w-[160px] h-[44px] sm:h-[48px] sm:px-[30px] bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#8F8F8F] font-bold text-[14px] sm:text-[16px] transition-all duration-150 cursor-pointer"
           >
             Batal
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="min-w-[280px] h-[76px] px-[44px] bg-[#FF0033] hover:bg-[#e0002c] rounded-[14px] text-white font-bold text-[30px] transition-colors cursor-pointer"
+            className="w-full sm:min-w-[160px] h-[44px] sm:h-[48px] sm:px-[30px] bg-[#FF0033] hover:bg-[#e0002c] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#FF0033]/50 focus-visible:outline-none rounded-[10px] text-white font-bold text-[14px] sm:text-[16px] transition-all duration-150 cursor-pointer"
           >
             Ya, Hapus
           </button>

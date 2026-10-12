@@ -1,4 +1,4 @@
-import type { Notifikasi } from './_types';
+import type { Notifikasi } from './types';
 
 export const DUMMY_NOTIFIKASI: Notifikasi[] = [
   {

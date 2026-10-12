@@ -9,7 +9,7 @@ import type {
   PemeriksaanForm,
   TambahResepForm,
   KomentarResep,
-} from './_types';
+} from './types';
 
 // ================= DATA BALITA =================
 export const BALITA_DATA: Balita[] = [
@@ -20,7 +20,7 @@ export const BALITA_DATA: Balita[] = [
 
 // ================= DATA RESEP =================
 export const RESEP_DATA: Resep[] = [
-  {
+   {
     id: 1,
     nama: 'Pepaya lumat',
     usia: '6 Bulan',
@@ -109,7 +109,7 @@ export const RESEP_DATA: Resep[] = [
     lemak: '5',
     tips: 'Kaya protein untuk tumbuh kembang. Bisa jadi finger food.',
     commentsCount: 0,
-  },
+  }, 
 ];
 
 // ================= KOMENTAR PER RESEP =================

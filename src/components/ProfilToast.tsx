@@ -6,39 +6,43 @@ type Props = {
 
 export default function ProfilToast({ onClose }: Props) {
   return (
+    // 👇 Ukuran container, posisi, dan shadow disesuaikan
     <div
-      className="fixed top-[40px] right-[40px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-      style={{ width: '578.37px', height: '153.79px' }}
+      className="fixed top-[24px] right-[24px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+      style={{ width: '380px', height: '100px' }}
       role="status"
       aria-live="polite"
     >
+      {/* 👇 Background hijau (aksen kiri) diperkecil */}
       <div
         className="absolute"
         style={{
           left: 0,
           top: 0,
-          width: '572.36px',
-          height: '153.79px',
+          width: '375px',
+          height: '100px',
           background: '#2E9C52',
-          borderRadius: '20.0592px',
+          borderRadius: '12px',
         }}
       />
 
+      {/* 👇 Background putih diperkecil */}
       <div
         className="absolute"
         style={{
-          left: '10.03px',
+          left: '6px',
           top: 0,
-          width: '562.33px',
-          height: '153.79px',
+          width: '369px',
+          height: '100px',
           background: '#FFFFFF',
-          borderRadius: '20.0592px',
+          borderRadius: '12px',
         }}
       />
 
+      {/* 👇 Ikon centang diperkecil dari 44px menjadi 28px */}
       <svg
         className="absolute"
-        style={{ left: '30.76px', top: '28.08px', width: '44.49px', height: '44.49px' }}
+        style={{ left: '20px', top: '18px', width: '28px', height: '28px' }}
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -54,21 +58,23 @@ export default function ProfilToast({ onClose }: Props) {
         />
       </svg>
 
+      {/* 👇 Judul diperkecil dari 21.4px menjadi 14px */}
       <h3
         className="absolute font-bold text-black"
-        style={{ left: '90.27px', top: '29.42px', fontSize: '21.3965px', lineHeight: '26px' }}
+        style={{ left: '58px', top: '19px', fontSize: '14px', lineHeight: '17px' }}
       >
         Profil Berhasil Disimpan
       </h3>
 
+      {/* 👇 Deskripsi diperkecil dari 21.4px menjadi 12px */}
       <p
         className="absolute"
         style={{
-          left: '90.27px',
-          top: '62.18px',
-          width: '488.11px',
-          fontSize: '21.3965px',
-          lineHeight: '26px',
+          left: '58px',
+          top: '40px',
+          width: '305px',
+          fontSize: '12px',
+          lineHeight: '15px',
           color: 'rgba(0, 0, 0, 0.71)',
         }}
       >

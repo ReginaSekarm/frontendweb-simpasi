@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, X } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
+import PageTransition from '../../components/PageTransition';  
 import {SYARAT_KETENTUAN, KEBIJAKAN_PRIVASI, KEBIJAKAN_PRIVASI_INTRO,} from '../login/syarat-kebijakan';
 
 export default function AdminLoginPage() {
@@ -39,24 +40,24 @@ export default function AdminLoginPage() {
       <AuthLayout>
         {/* ============ FORM CARD ============ */}
         <div
-          className="w-full max-w-[641px] bg-white rounded-[38px] px-8 pt-10 pb-10 sm:pt-[56px] sm:pb-[106px] sm:pl-[104px] sm:pr-[113px] transition-all z-20"
-          style={{ boxShadow: '10.5px 12.6px 4.3px #D45060' }}
+          className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
+          style={{ boxShadow: '8px 10px 3.5px #D45060' }}
         >
           {/* Header */}
-          <div className="mb-[46px]">
-            <h1 className="text-center text-[30.9px] font-bold text-[#D45060] leading-[37px]">
+          <div className="mb-[36px]">
+            <h1 className="text-center text-[25px] font-bold text-[#D45060] leading-[30px]">
               SiMPASI
             </h1>
-            <p className="mt-[6px] text-center text-[13.6px] font-medium text-black leading-[16px] max-w-[240px] mx-auto">
-            Sistem Informasi Mencegah Stunting<br />
-            Silahkan masuk ke akun Anda
+            <p className="mt-[5px] text-center text-[11.5px] font-medium text-black leading-[14px] max-w-[220px] mx-auto">
+              Sistem Informasi Mencegah Stunting<br />
+              Silahkan masuk ke akun Anda
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div>
-              <label className="block text-[24.7px] font-bold text-[#797777] mb-2 leading-[30px]">
+              <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Email
               </label>
               <input
@@ -65,12 +66,12 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@gmail.com"
-                className="w-full h-[49.44px] pl-[10px] pr-4 rounded-[6.18px] border-[1.24px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[14.8px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
+                className="w-full h-[40px] pl-[10px] pr-4 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
               />
             </div>
 
-            <div className="mt-[13px]">
-              <label className="block text-[24.7px] font-bold text-[#797777] mb-2 leading-[30px]">
+            <div className="mt-[10px]">
+              <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Password
               </label>
               <div className="relative">
@@ -80,46 +81,46 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full h-[49.44px] pl-[18.5px] pr-14 rounded-[6.18px] border-[1.24px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[14.8px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                  className="w-full h-[40px] pl-[14px] pr-12 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-[18.6px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors"
+                  className="absolute right-[14px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors"
                 >
-                  {showPassword ? <Eye className="w-[25px] h-[25px]" /> : <EyeOff className="w-[25px] h-[25px]" />}
+                  {showPassword ? <Eye className="w-[20px] h-[20px]" /> : <EyeOff className="w-[20px] h-[20px]" />}
                 </button>
               </div>
             </div>
 
-            <div className="mt-[21px] flex items-center justify-between ml-[6px] sm:-mr-[5px]">
-              <label className="flex items-center gap-[9px] cursor-pointer">
+            <div className="mt-[17px] flex items-center justify-between ml-[5px] sm:-mr-[4px]">
+              <label className="flex items-center gap-[7px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-[17px] h-[17px] rounded-[5.1px] border-[1.7px] border-[#797777] bg-[#F7F8F0] accent-[#D45060] cursor-pointer"
+                  className="w-[14px] h-[14px] rounded-[4px] border-[1.4px] border-[#797777] bg-[#F7F8F0] accent-[#D45060] cursor-pointer"
                 />
-                <span className="text-[13.6px] leading-[16px] text-[#797777]">Ingat saya</span>
+                <span className="text-[11px] leading-[13px] text-[#797777]">Ingat saya</span>
               </label>
               <button
                 type="button"
                 onClick={() => router.push('/forgot-password')}
-                className="text-[16px] leading-[19px] font-bold text-[#797777] hover:text-[#D45060] transition-colors cursor-pointer"
+                className="text-[13px] leading-[15px] font-bold text-[#797777] hover:text-[#D45060] transition-colors cursor-pointer"
               >
                 Lupa Password?
               </button>
             </div>
 
-            <div className="mt-[28px] ml-[15px]">
-              <label className="flex items-start gap-[6.5px] cursor-pointer">
+            <div className="mt-[22px] ml-[12px]">
+              <label className="flex items-start gap-[5px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="w-[17px] h-[17px] rounded-[5.1px] border-[1.7px] border-[#797777] bg-[#F7F8F0] accent-[#D45060] cursor-pointer shrink-0"
+                  className="w-[14px] h-[14px] rounded-[4px] border-[1.4px] border-[#797777] bg-[#F7F8F0] accent-[#D45060] cursor-pointer shrink-0"
                 />
-                <span className="mt-px text-[11.1px] text-black leading-[13px]">
+                <span className="mt-px text-[9.5px] text-black leading-[12px]">
                   Saya menyetujui{' '}
                   <span
                     role="button"
@@ -140,10 +141,10 @@ export default function AdminLoginPage() {
               </label>
             </div>
 
-            <div className="mt-[34px] flex justify-center sm:justify-start sm:pl-[48px]">
+            <div className="mt-[27px] flex justify-center sm:justify-start sm:pl-[38px]">
               <button
                 type="submit"
-                className="w-full max-w-[333.73px] h-[61.8px] bg-[#D45060] hover:bg-[#c44454] text-white text-[24.7px] font-bold rounded-[12.36px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm"
+                className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm"
               >
                 Masuk
               </button>

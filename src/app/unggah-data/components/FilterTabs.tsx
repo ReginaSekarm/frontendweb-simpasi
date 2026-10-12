@@ -16,13 +16,15 @@ export default function FilterTabs<T extends string>({
   className = '',
 }: Props<T>) {
   return (
-    <div className={`flex flex-wrap items-center gap-[12px] ${className}`}>
+    // Gap antar tombol diperkecil dari 12px menjadi 8px
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       {options.map((opt) => (
         <button
           key={opt}
           type="button"
           onClick={() => onChange(opt)}
-          className={`h-[42px] px-[20px] rounded-[9px] font-semibold text-[22.5px] leading-[27px] transition-colors cursor-pointer ${
+          // Tinggi, padding, font, dan radius diperkecil
+          className={`h-[30px] px-3.5 rounded-[7px] font-semibold text-[13px] leading-[16px] transition-colors cursor-pointer ${
             value === opt
               ? 'bg-[#D45060] text-white'
               : 'bg-[#D9D9D9]/50 text-[#AAA6A6]/50 hover:bg-[#D9D9D9]/70'

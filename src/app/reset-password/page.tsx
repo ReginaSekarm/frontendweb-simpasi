@@ -17,7 +17,6 @@ function ResetPasswordContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // Tampilkan toast "Verifikasi email berhasil" saat halaman dibuka
   useEffect(() => {
     setShowToast(true);
     const t = setTimeout(() => setShowToast(false), 4000);
@@ -37,8 +36,6 @@ function ResetPasswordContent() {
     }
 
     setIsLoading(true);
-
-    // TODO: Hubungkan ke endpoint API reset password
     console.log('Reset password untuk:', email, '→ password baru:', password);
 
     setTimeout(() => {
@@ -51,19 +48,19 @@ function ResetPasswordContent() {
   return (
     <>
       <AuthLayout>
-        {/* SISI KANAN: FORM CARD */}
+        {/* 👇 Card disamakan dengan Login Kader */}
         <div
-          className="w-full max-w-[641px] bg-white rounded-[38px] px-8 py-10 sm:px-12 sm:py-14 lg:px-[80px] lg:py-[70px] transition-all z-20"
+          className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
           style={{
-            boxShadow: '10.5px 12.6px 4.3px #D45060',
+            boxShadow: '8px 10px 3.5px #D45060',
           }}
         >
           {/* Header Title SiMPASI */}
-          <div className="mb-[26px]">
-            <h1 className="text-center text-[30.9px] font-bold text-[#D45060] leading-[37px]">
+          <div className="mb-[36px]">
+            <h1 className="text-center text-[25px] font-bold text-[#D45060] leading-[30px]">
               SiMPASI
             </h1>
-            <p className="mt-[6px] text-center text-[13.6px] font-medium text-black leading-[16px] max-w-[240px] mx-auto">
+            <p className="mt-[5px] text-center text-[11.5px] font-medium text-black leading-[14px] max-w-[220px] mx-auto">
               Sistem Informasi Mencegah Stunting<br />
               Silahkan masuk ke akun Anda
             </p>
@@ -71,10 +68,10 @@ function ResetPasswordContent() {
 
           {/* Section Heading: Buat Password Baru */}
           <div className="text-center mb-[28px]">
-            <h2 className="text-[25.7px] font-bold text-black leading-[31px]">
+            <h2 className="text-[20px] font-bold text-black leading-[24px]">
               Buat Password Baru
             </h2>
-            <p className="mt-[8px] text-[13.6px] font-normal text-black leading-[18px]">
+            <p className="mt-[6px] text-[11.5px] font-normal text-black leading-[14px]">
               Kode terverifikasi. Buat password baru untuk akun Anda.
             </p>
           </div>
@@ -83,7 +80,7 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit}>
             {/* Input Password Baru */}
             <div>
-              <label className="block text-[20px] font-bold text-[#797777] mb-2 leading-[26px]">
+              <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Password Baru
               </label>
               <div className="relative">
@@ -93,25 +90,25 @@ function ResetPasswordContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full h-[51.4px] pl-[18.5px] pr-14 rounded-[6.4px] border-[1.28px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[15px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
+                  className="w-full h-[40px] pl-[14px] pr-12 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-[18.6px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors cursor-pointer"
+                  className="absolute right-[14px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors cursor-pointer"
                 >
                   {showPassword ? (
-                    <Eye className="w-[24px] h-[24px]" />
+                    <Eye className="w-[20px] h-[20px]" />
                   ) : (
-                    <EyeOff className="w-[24px] h-[24px]" />
+                    <EyeOff className="w-[20px] h-[20px]" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Input Konfirmasi Password */}
-            <div className="mt-[18px]">
-              <label className="block text-[20px] font-bold text-[#797777] mb-2 leading-[26px]">
+            <div className="mt-[10px]">
+              <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Konfirmasi Password
               </label>
               <div className="relative">
@@ -121,28 +118,28 @@ function ResetPasswordContent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full h-[51.4px] pl-[18.5px] pr-14 rounded-[6.4px] border-[1.28px] border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[15px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
+                  className="w-full h-[40px] pl-[14px] pr-12 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-[18.6px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors cursor-pointer"
+                  className="absolute right-[14px] top-1/2 -translate-y-1/2 text-black hover:text-[#D45060] transition-colors cursor-pointer"
                 >
                   {showConfirm ? (
-                    <Eye className="w-[24px] h-[24px]" />
+                    <Eye className="w-[20px] h-[20px]" />
                   ) : (
-                    <EyeOff className="w-[24px] h-[24px]" />
+                    <EyeOff className="w-[20px] h-[20px]" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Tombol Simpan Password Baru */}
-            <div className="mt-[34px] flex justify-center">
+            <div className="mt-[27px] flex justify-center sm:justify-start sm:pl-[38px]">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full max-w-[347px] h-[64px] bg-[#D45060] hover:bg-[#c44454] disabled:bg-[#D45060]/60 disabled:cursor-not-allowed text-white text-[22px] sm:text-[24px] font-bold rounded-[12.8px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm cursor-pointer"
+                className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] disabled:bg-[#D45060]/60 disabled:cursor-not-allowed text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm cursor-pointer"
               >
                 {isLoading ? 'Menyimpan...' : 'Simpan Password Baru'}
               </button>
@@ -151,44 +148,45 @@ function ResetPasswordContent() {
         </div>
       </AuthLayout>
 
-      {/* ============ TOAST: VERIFIKASI EMAIL BERHASIL (KANAN ATAS, AUTO-DISMISS) ============ */}
+      {/* ============ TOAST: VERIFIKASI EMAIL BERHASIL ============ */}
       {showToast && (
+        // 👇 Toast diperkecil
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-6 right-6 z-[9999]"
-          style={{ width: '549.63px', height: '146.14px' }}
+          className="fixed top-[24px] right-[24px] z-[9999]"
+          style={{ width: '380px', height: '100px' }}
         >
-          {/* Rectangle 410 — background hijau */}
+          {/* Background hijau (aksen kiri) */}
           <div
             className="absolute inset-0"
             style={{
               background: '#2E9C52',
-              borderRadius: '19.0623px',
+              borderRadius: '12px',
             }}
           />
 
-          {/* Rectangle 411 — panel putih */}
+          {/* Panel putih */}
           <div
             className="absolute"
             style={{
-              left: '9.53px',
+              left: '6px',
               top: 0,
-              width: '534.38px',
-              height: '146.14px',
+              width: '369px',
+              height: '100px',
               background: '#FFFFFF',
-              borderRadius: '19.0623px',
+              borderRadius: '12px',
             }}
           />
 
-          {/* healthicons:yes — ikon centang */}
+          {/* Icon centang */}
           <svg
             className="absolute"
             style={{
-              left: '29.23px',
-              top: '26.69px',
-              width: '44.48px',
-              height: '44.48px',
+              left: '20px',
+              top: '18px',
+              width: '28px',
+              height: '28px',
             }}
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -209,10 +207,10 @@ function ResetPasswordContent() {
           <h3
             className="absolute font-bold text-black"
             style={{
-              left: '85.78px',
-              top: '27.96px',
-              fontSize: '20.3331px',
-              lineHeight: '25px',
+              left: '58px',
+              top: '19px',
+              fontSize: '14px',
+              lineHeight: '17px',
             }}
           >
             Verifikasi email berhasil
@@ -222,11 +220,11 @@ function ResetPasswordContent() {
           <p
             className="absolute"
             style={{
-              left: '86px',
-              top: '67px',
-              width: '413px',
-              fontSize: '20px',
-              lineHeight: '24px',
+              left: '58px',
+              top: '40px',
+              width: '305px',
+              fontSize: '12px',
+              lineHeight: '15px',
               color: '#8F8F8F',
             }}
           >

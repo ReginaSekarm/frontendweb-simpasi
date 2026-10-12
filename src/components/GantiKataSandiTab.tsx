@@ -42,9 +42,10 @@ function Toast({
   const accentColor = type === 'success' ? '#2E9C52' : '#D45060';
 
   return (
+    // 👇 Toast diperkecil
     <div
-      className="fixed top-[40px] right-[40px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-      style={{ width: '578px', minHeight: '154px' }}
+      className="fixed top-[24px] right-[24px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+      style={{ width: '380px', minHeight: '100px' }}
       role="status"
       aria-live="polite"
     >
@@ -53,30 +54,30 @@ function Toast({
         style={{
           left: 0,
           top: 0,
-          width: '572px',
+          width: '375px',
           height: '100%',
           background: accentColor,
-          borderRadius: '20px',
+          borderRadius: '12px',
         }}
       />
 
       <div
-        className="absolute flex items-start gap-[16px] px-[20px] py-[24px]"
+        className="absolute flex items-start gap-3 px-4 py-4"
         style={{
-          left: '10px',
+          left: '6px',
           top: 0,
-          width: '562px',
-          minHeight: '154px',
+          width: '369px',
+          minHeight: '100px',
           background: '#FFFFFF',
-          borderRadius: '20px',
+          borderRadius: '12px',
         }}
       >
         <div
-          className="shrink-0 w-[54px] h-[54px] rounded-full flex items-center justify-center mt-[2px]"
+          className="shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center mt-[2px]"
           style={{ background: accentColor }}
         >
           {type === 'success' ? (
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M5 12.5L10 17.5L19 7"
                 stroke="#FFFFFF"
@@ -86,16 +87,17 @@ function Toast({
               />
             </svg>
           ) : (
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 6V13" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" />
               <circle cx="12" cy="17.5" r="1.6" fill="#FFFFFF" />
             </svg>
           )}
         </div>
 
-        <div className="flex-1 min-w-0 pt-[4px]">
-          <h3 className="text-black font-bold text-[20px] leading-[24px]">{title}</h3>
-          <p className="mt-[6px] text-black/70 text-[17px] leading-[22px]">{message}</p>
+        <div className="flex-1 min-w-0 pt-1">
+          {/* 👇 Font judul dan deskripsi diperkecil */}
+          <h3 className="text-black font-bold text-[14px] leading-[17px]">{title}</h3>
+          <p className="mt-1 text-black/70 text-[12px] leading-[15px]">{message}</p>
         </div>
 
         {type === 'error' && (
@@ -103,9 +105,9 @@ function Toast({
             type="button"
             onClick={onClose}
             aria-label="Tutup"
-            className="shrink-0 w-[28px] h-[28px] flex items-center justify-center text-[#8F8F8F] hover:text-black transition-colors cursor-pointer mt-[2px]"
+            className="shrink-0 w-[20px] h-[20px] flex items-center justify-center text-[#8F8F8F] hover:text-black transition-colors cursor-pointer mt-1"
           >
-            <X className="w-[24px] h-[24px]" strokeWidth={2.5} />
+            <X className="w-[16px] h-[16px]" strokeWidth={2.5} />
           </button>
         )}
       </div>
@@ -181,18 +183,20 @@ export default function GantiKataSandiTab() {
     }, 800);
   };
 
+  // 👇 Ukuran input, label, dan tombol mata diperkecil
   const inputCls =
-    'w-full h-[53px] pl-5 pr-14 rounded-[16.6px] bg-[#D9D9D9]/50 text-[18px] text-black placeholder-[#8F8F8F] focus:outline-none focus:ring-2 focus:ring-[#D45060]/40 transition';
-  const labelCls = 'block text-[21px] font-bold text-black mb-[10px]';
+    'w-full h-[38px] pl-3.5 pr-11 rounded-[10px] bg-[#D9D9D9]/50 text-[13px] text-black placeholder-[#8F8F8F] focus:outline-none focus:ring-2 focus:ring-[#D45060]/40 transition';
+  const labelCls = 'block text-[13px] font-bold text-black mb-1.5';
   const eyeBtn =
-    'absolute right-4 top-1/2 -translate-y-1/2 text-[#8F8F8F] hover:text-black cursor-pointer';
+    'absolute right-3 top-1/2 -translate-y-1/2 text-[#8F8F8F] hover:text-black cursor-pointer';
 
   return (
     <>
-      <div className="bg-white border-[1.12px] border-[#AAA6A6]/70 rounded-[17px] w-full max-w-[638px] px-[88px] pt-[31px] pb-[36px]">
+      {/* 👇 Container diperkecil dari 638px menjadi 460px */}
+      <div className="bg-white border border-[#AAA6A6]/70 rounded-[14px] w-full max-w-[460px] px-8 pt-6 pb-6">
 
         {/* Kata Sandi Lama */}
-        <div className="mb-[17px]">
+        <div className="mb-3">
           <label className={labelCls}>Kata Sandi Lama</label>
           <div className="relative">
             <input
@@ -203,13 +207,13 @@ export default function GantiKataSandiTab() {
               className={inputCls}
             />
             <button type="button" onClick={() => setShowOld(!showOld)} className={eyeBtn} aria-label="Toggle">
-              {showOld ? <Eye className="w-[26px] h-[26px]" /> : <EyeOff className="w-[26px] h-[26px]" />}
+              {showOld ? <Eye className="w-[16px] h-[16px]" /> : <EyeOff className="w-[16px] h-[16px]" />}
             </button>
           </div>
         </div>
 
         {/* Kata Sandi Baru */}
-        <div className="mb-[17px]">
+        <div className="mb-3">
           <label className={labelCls}>Kata Sandi Baru</label>
           <div className="relative">
             <input
@@ -220,13 +224,13 @@ export default function GantiKataSandiTab() {
               className={inputCls}
             />
             <button type="button" onClick={() => setShowNew(!showNew)} className={eyeBtn} aria-label="Toggle">
-              {showNew ? <Eye className="w-[26px] h-[26px]" /> : <EyeOff className="w-[26px] h-[26px]" />}
+              {showNew ? <Eye className="w-[16px] h-[16px]" /> : <EyeOff className="w-[16px] h-[16px]" />}
             </button>
           </div>
         </div>
 
         {/* Konfirmasi Kata Sandi Baru */}
-        <div className="mb-[17px]">
+        <div className="mb-3">
           <label className={labelCls}>Konfirmasi Kata Sandi Baru</label>
           <div className="relative">
             <input
@@ -237,27 +241,28 @@ export default function GantiKataSandiTab() {
               className={inputCls}
             />
             <button type="button" onClick={() => setShowConfirm(!showConfirm)} className={eyeBtn} aria-label="Toggle">
-              {showConfirm ? <Eye className="w-[26px] h-[26px]" /> : <EyeOff className="w-[26px] h-[26px]" />}
+              {showConfirm ? <Eye className="w-[16px] h-[16px]" /> : <EyeOff className="w-[16px] h-[16px]" />}
             </button>
           </div>
 
           {confirmPw.length > 0 && !confirmMatch && (
-            <p className="mt-[8px] text-[13px] text-[#D45060] font-semibold">
+            <p className="mt-1.5 text-[11px] text-[#D45060] font-semibold">
               Konfirmasi kata sandi tidak cocok
             </p>
           )}
         </div>
 
         {/* ============ CHECKLIST REALTIME ============ */}
-        <ul className="space-y-[9px] mt-[14px] mb-[50px]">
+        {/* 👇 Ukuran icon dan font diperkecil */}
+        <ul className="space-y-1.5 mt-3 mb-6">
           {ruleStatus.map((r) => (
-            <li key={r.key} className="flex items-center gap-[10px]">
+            <li key={r.key} className="flex items-center gap-2">
               {r.passed ? (
-                <CheckCircle2 className="w-[19px] h-[19px] text-[#2E9C52] shrink-0" strokeWidth={2.2} />
+                <CheckCircle2 className="w-[14px] h-[14px] text-[#2E9C52] shrink-0" strokeWidth={2.2} />
               ) : (
-                <Circle className="w-[19px] h-[19px] text-[#797777] shrink-0" strokeWidth={2} />
+                <Circle className="w-[14px] h-[14px] text-[#797777] shrink-0" strokeWidth={2} />
               )}
-              <span className={`text-[16.6px] font-medium ${r.passed ? 'text-[#2E9C52]' : 'text-[#797777]'}`}>
+              <span className={`text-[12px] font-medium ${r.passed ? 'text-[#2E9C52]' : 'text-[#797777]'}`}>
                 {r.label}
               </span>
             </li>
@@ -266,11 +271,12 @@ export default function GantiKataSandiTab() {
 
         {/* ============ TOMBOL ============ */}
         <div className="flex justify-center">
+          {/* 👇 Tombol diperkecil */}
           <button
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className={`h-[53px] px-[30px] rounded-[16.6px] text-[21px] font-bold transition-all text-white ${
+            className={`h-[38px] px-6 rounded-[10px] text-[13px] font-bold transition-all text-white ${
               loading
                 ? 'bg-[#D45060]/60 cursor-not-allowed'
                 : 'bg-[#D45060] hover:bg-[#c44454] cursor-pointer active:scale-[0.98]'

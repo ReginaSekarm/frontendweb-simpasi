@@ -13,28 +13,27 @@ import {
 import Sidebar from '../../../components/Sidebar';
 import Topbar from '../../../components/Topbar';
 
-import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../_types';
+import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../types';
 import {
   BALITA_DATA,
   RIWAYAT_MAP,
   EMPTY_PEMERIKSAAN,
   KONDISI_STYLE,
   KONDISI_DOT,
-} from '../_data';
+} from '../data';
 
-import Toast from '../_components/Toast';
-import PemeriksaanModal from '../_components/PemeriksaanModal';
-import ConfirmDeleteModal from './_components/ConfirmDeleteModal';
+import Toast from '../components/Toast';
+import PemeriksaanModal from '../components/PemeriksaanModal';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 
 function DetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const balitaIdParam = searchParams.get('balitaId');
 
-  // Balita dari DUMMY (BALITA_DATA)
   const balita = BALITA_DATA.find((b) => b.id === Number(balitaIdParam)) || BALITA_DATA[0];
+   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Riwayat dari DUMMY (RIWAYAT_MAP) — state lokal, biar bisa nambah/edit/hapus
   const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>(
     RIWAYAT_MAP[balita.id] || []
   );
@@ -214,59 +213,72 @@ function DetailContent() {
 
   return (
     <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
-      <Sidebar activePage="unggah-data" />
+      <Sidebar
+        activePage="unggah-data"
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-      <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col">
-        <Topbar title="Unggah Resep & Pemeriksaan" titleColor="#D45060" />
+      <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col min-w-0">
+        <Topbar
+          title="Unggah Resep & Pemeriksaan"
+          titleColor="#D45060"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
-        <div className="flex-1 overflow-y-auto px-[37px] pt-[30px] pb-[27px]">
-          <div className="bg-white rounded-[7px] px-[50px] pt-[35px] pb-[40px]">
-            {/* Tombol Kembali */}
+        {/* Padding area konten diperkecil */}
+        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5">
+          {/* Container utama diperkecil */}
+          <div className="bg-white rounded-[7px] px-6 pt-5 pb-6">
+            
+            {/* Tombol Kembali diperkecil */}
             <button
               type="button"
               onClick={() => router.push('/unggah-data')}
-              className="flex items-center gap-[14px] mb-[26px] cursor-pointer group"
+              className="flex items-center gap-2.5 mb-4 cursor-pointer group"
             >
-              <span className="w-[38px] h-[38px] rounded-full bg-black/50 flex items-center justify-center group-hover:bg-black/70 transition-colors">
-                <ArrowLeft className="w-[22px] h-[22px] text-white" strokeWidth={2.5} />
+              <span className="w-[26px] h-[26px] rounded-full bg-black/50 flex items-center justify-center group-hover:bg-black/70 transition-colors">
+                <ArrowLeft className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
               </span>
-              <span className="text-[#8F8F8F] font-bold text-[22px] leading-[27px] group-hover:text-[#D45060] transition-colors">
+              <span className="text-[#8F8F8F] font-bold text-[14px] leading-[18px] group-hover:text-[#D45060] transition-colors">
                 Kembali
               </span>
             </button>
 
-            {/* Card Balita */}
-            <div className="flex items-center gap-[20px] mb-[40px]">
-              <div className="w-[67px] h-[67px] rounded-full bg-[#FCEBD5] flex items-center justify-center shrink-0">
-                <span className="text-[#D45060] font-bold text-[27px] leading-[33px]">
+            {/* Card Balita diperkecil */}
+            <div className="flex items-center gap-3.5 mb-6">
+              {/* Avatar diperkecil */}
+              <div className="w-[44px] h-[44px] rounded-full bg-[#FCEBD5] flex items-center justify-center shrink-0">
+                <span className="text-[#D45060] font-bold text-[18px] leading-[22px]">
                   {balita.nama.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-black font-semibold text-[22.5px] leading-[27px]">{balita.nama}</h2>
-                <p className="mt-[6px] text-[#8F8F8F] font-bold text-[16.87px] leading-[20px]">
+                <h2 className="text-black font-semibold text-[15px] leading-[18px]">{balita.nama}</h2>
+                <p className="mt-1 text-[#8F8F8F] font-bold text-[12px] leading-[14px]">
                   {balita.jenisKelamin}
-                  <span className="mx-[10px]">•</span>
+                  <span className="mx-[6px]">•</span>
                   {balita.usia}
                 </p>
               </div>
+              {/* Tombol Pemeriksaan diperkecil */}
               <button
                 type="button"
                 onClick={handleOpenPemeriksaan}
-                className="h-[46px] px-[16px] bg-[#D45060] hover:bg-[#c44454] rounded-[13.5px] text-white font-semibold text-[20.25px] leading-[25px] flex items-center gap-[10px] transition-colors active:scale-[0.98] cursor-pointer shrink-0"
+                className="h-[34px] px-3.5 bg-[#D45060] hover:bg-[#c44454] rounded-[9px] text-white font-semibold text-[13px] leading-[16px] flex items-center gap-2 transition-colors active:scale-[0.98] cursor-pointer shrink-0"
               >
-                <Plus className="w-[29px] h-[29px]" strokeWidth={2.5} />
+                <Plus className="w-[18px] h-[18px]" strokeWidth={2.5} />
                 <span>Pemeriksaan</span>
               </button>
             </div>
 
-            {/* Heading Riwayat */}
-            <h3 className="text-black/70 font-bold text-[20.25px] leading-[25px] mb-[14px]">Riwayat Pemeriksaan</h3>
+            {/* Heading Riwayat diperkecil */}
+            <h3 className="text-black/70 font-bold text-[14px] leading-[18px] mb-2.5">Riwayat Pemeriksaan</h3>
 
-            {/* Banner Info */}
-            <div className="w-full bg-[#FFC2B4]/50 rounded-[12px] px-[18px] py-[13px] flex items-center gap-[14px] mb-[36px]">
-              <AlertCircle className="w-[24px] h-[24px] text-[#BE6D15] shrink-0" strokeWidth={2} />
-              <p className="text-[#BE6D15]/90 font-medium text-[18px] leading-[22px]">
+            {/* Banner Info diperkecil */}
+            <div className="w-full bg-[#FFC2B4]/50 rounded-[8px] px-3.5 py-2.5 flex items-center gap-2.5 mb-5">
+              <AlertCircle className="w-[16px] h-[16px] text-[#BE6D15] shrink-0" strokeWidth={2} />
+              <p className="text-[#BE6D15]/90 font-medium text-[12px] leading-[15px]">
                 Pemeriksaan hanya dapat diedit/dihapus dalam <span className="font-bold">24 jam</span> setelah disimpan
               </p>
             </div>
@@ -274,69 +286,78 @@ function DetailContent() {
             {/* Timeline Riwayat */}
             <div className="relative">
               {riwayat.length === 0 ? (
-                <div className="h-[140px] flex items-center justify-center text-[#797777] font-medium text-[18px]">
+                <div className="h-[100px] flex items-center justify-center text-[#797777] font-medium text-[13px]">
                   Belum ada riwayat pemeriksaan.
                 </div>
               ) : (
                 riwayat.map((item) => {
                   return (
-                    <div key={item.id} className="relative flex gap-[28px] pb-[36px]">
-                      <div className="relative flex flex-col items-center shrink-0 w-[18px]">
-                        <div className={`w-[18px] h-[18px] rounded-full ${KONDISI_DOT[item.kondisi]} z-10 relative`} />
+                    // Gap dan padding timeline diperkecil
+                    <div key={item.id} className="relative flex gap-4 pb-5">
+                      {/* Dot dan line timeline diperkecil */}
+                      <div className="relative flex flex-col items-center shrink-0 w-[12px]">
+                        <div className={`w-[12px] h-[12px] rounded-full ${KONDISI_DOT[item.kondisi]} z-10 relative`} />
                         <div
-                          className={`absolute top-[18px] bottom-[-36px] left-1/2 -translate-x-1/2 w-[2.25px] ${
+                          className={`absolute top-[12px] bottom-[-20px] left-1/2 -translate-x-1/2 w-[1.5px] ${
                             item.kondisi === 'Normal' ? 'bg-[#66A0C2]' : 'bg-[#FFEAA2]'
                           }`}
                         />
                       </div>
 
-                      <div className="flex-1 min-w-0 flex items-start justify-between gap-[20px]">
+                      <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-[#8F8F8F] font-bold text-[14.62px] leading-[18px] mb-[6px]">{item.tanggal}</p>
-                          <p className="text-black/80 font-semibold text-[16.87px] leading-[20px] mb-[10px]">
-                            BB {item.bb} kg<span className="mx-[8px]">•</span>TB {item.tb} cm<span className="mx-[8px]">•</span>LK {item.lk} cm<span className="mx-[8px]">•</span>LiLA {item.lila} cm
+                          {/* Tanggal diperkecil */}
+                          <p className="text-[#8F8F8F] font-bold text-[10px] leading-[12px] mb-1">{item.tanggal}</p>
+                          {/* Detail pengukuran diperkecil */}
+                          <p className="text-black/80 font-semibold text-[12px] leading-[14px] mb-2">
+                            BB {item.bb} kg<span className="mx-[5px]">•</span>TB {item.tb} cm<span className="mx-[5px]">•</span>LK {item.lk} cm<span className="mx-[5px]">•</span>LiLA {item.lila} cm
                           </p>
-                          <div className="mb-[10px]">
-                            <span className={`inline-flex min-w-[101px] h-[33px] px-3 items-center justify-center rounded-[6px] font-bold text-[14.62px] leading-[18px] ${KONDISI_STYLE[item.kondisi]}`}>
+                          {/* Badge Kondisi diperkecil */}
+                          <div className="mb-2">
+                            <span className={`inline-flex min-w-[68px] h-[22px] px-2 items-center justify-center rounded-[5px] font-bold text-[10px] leading-[12px] ${KONDISI_STYLE[item.kondisi]}`}>
                               {item.kondisi}
                             </span>
                           </div>
-                          <p className="text-[#8F8F8F] font-bold text-[16.87px] leading-[20px] mb-[10px]">
+                          {/* Catatan diperkecil */}
+                          <p className="text-[#8F8F8F] font-bold text-[12px] leading-[14px] mb-2">
                             Catatan: {item.catatan}
                           </p>
+                          {/* Chip bahan makanan diperkecil */}
                           {item.bahanMakanan.length > 0 && (
-                            <div className="flex flex-wrap gap-[12px] mb-[10px]">
+                            <div className="flex flex-wrap gap-2 mb-2">
                               {item.bahanMakanan.map((bahan) => (
-                                <span key={bahan} className="h-[33px] px-[18px] bg-[#1A7772] rounded-[11px] text-white font-bold text-[14.62px] leading-[18px] flex items-center gap-[10px]">
-                                  <ChefHat className="w-[18px] h-[18px]" strokeWidth={2} />
+                                <span key={bahan} className="h-[22px] px-2.5 bg-[#1A7772] rounded-[8px] text-white font-bold text-[10px] leading-[12px] flex items-center gap-1.5">
+                                  <ChefHat className="w-[12px] h-[12px]" strokeWidth={2} />
                                   <span>{bahan}</span>
                                 </span>
                               ))}
                             </div>
                           )}
+                          {/* Info diedit diperkecil */}
                           {item.diedit && (
-                            <p className="text-[#AAA6A6] font-semibold text-[13.5px] leading-[16px]">{item.diedit}</p>
+                            <p className="text-[#AAA6A6] font-semibold text-[10px] leading-[12px]">{item.diedit}</p>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-[14px] shrink-0">
+                        {/* Tombol aksi diperkecil */}
+                        <div className="flex items-center gap-2.5 shrink-0">
                           <button
                             type="button"
                             disabled={!item.canEdit}
                             onClick={() => handleEditRiwayat(item)}
                             title={item.canEdit ? 'Edit' : 'Hanya bisa diedit dalam 24 jam'}
-                            className={`w-[39px] h-[39px] rounded-[9px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-black/70 hover:bg-[#F7F8F0] cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
+                            className={`w-[28px] h-[28px] rounded-[7px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-black/70 hover:bg-[#F7F8F0] cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
                           >
-                            <Pencil className={`w-[22px] h-[22px] ${item.canEdit ? 'text-black/70' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
+                            <Pencil className={`w-[15px] h-[15px] ${item.canEdit ? 'text-black/70' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
                           </button>
                           <button
                             type="button"
                             disabled={!item.canEdit}
                             onClick={() => handleOpenDelete(item)}
                             title={item.canEdit ? 'Hapus' : 'Hanya bisa dihapus dalam 24 jam'}
-                            className={`w-[39px] h-[39px] rounded-[9px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-[#FF0020] hover:bg-[#D45060]/5 cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
+                            className={`w-[28px] h-[28px] rounded-[7px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-[#FF0020] hover:bg-[#D45060]/5 cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
                           >
-                            <Trash2 className={`w-[22px] h-[22px] ${item.canEdit ? 'text-[#FF0020]' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
+                            <Trash2 className={`w-[15px] h-[15px] ${item.canEdit ? 'text-[#FF0020]' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
                           </button>
                         </div>
                       </div>

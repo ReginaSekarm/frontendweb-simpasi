@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { MessageCircle, Check } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
-import type { NotifType, Notifikasi } from './_types';
+import PageTransition from '../../components/PageTransition';  
+import type { NotifType, Notifikasi } from './types';
 import { DUMMY_NOTIFIKASI } from './data';
 
 // ================= ICON MAP =================
@@ -32,7 +33,7 @@ export default function NotifikasiPage() {
 
     // Komentar langsung ke halaman resep dengan modal terbuka
     if (n.resepId) {
-      router.push(`/unggah-data?tab=Resep&resepId=${n.resepId}`);
+      router.push(`/unggah-data/resep?resepId=${n.resepId}`);
     }
   };
 
@@ -45,7 +46,7 @@ export default function NotifikasiPage() {
       <Sidebar activePage="notifikasi" />
 
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col">
-        <Topbar title="Notifikasi" titleColor="#D45060" showSearch searchPlaceholder="Cari notifikasi..." />
+        <Topbar title="Notifikasi" titleColor="#D45060" hideSearch hideNotif />
 
         <div className="flex-1 overflow-y-auto px-[34px] pt-[32px] pb-8">
           {/* ============ HEADER ============ */}

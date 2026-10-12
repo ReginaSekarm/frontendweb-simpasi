@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { Resep, TambahResepForm, ToastState } from '../_types';
-import { EMPTY_TAMBAH_RESEP, mapUsiaKeForm } from '../_data';
+import type { Resep, TambahResepForm, ToastState } from '../types';
+import { EMPTY_TAMBAH_RESEP, mapUsiaKeForm } from '../data';
 
 type SetToast = React.Dispatch<React.SetStateAction<ToastState>>;
 

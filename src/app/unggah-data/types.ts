@@ -37,7 +37,7 @@ export type TambahResepForm = {
   tips: string;
 };
 
-// ✅ Type komentar — DI SINI, bukan di _data.ts
+// Type komentar — DI SINI, bukan di _data.ts
 export type KomentarResep = {
   id: number;
   nama: string;
