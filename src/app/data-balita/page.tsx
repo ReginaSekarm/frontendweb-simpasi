@@ -55,7 +55,7 @@ export default function DataBalitaPage() {
   const [formData, setFormData] = useState<BalitaForm>(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
 
-  // 👇 STATE BARU: search query dari Topbar
+  // STATE BARU: search query dari Topbar
   const [searchQuery, setSearchQuery] = useState('');
 
   const [balitaList, setBalitaList] = useState<Balita[]>(BALITA_DATA);
@@ -97,7 +97,7 @@ export default function DataBalitaPage() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // 👇 Reset halaman ketika filter atau search berubah
+  // Reset halaman ketika filter atau search berubah
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedFilter, searchQuery]);
@@ -338,7 +338,7 @@ export default function DataBalitaPage() {
       />
 
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col min-w-0">
-        {/* 👇 Topbar dengan search ter-wire */}
+        {/* Topbar dengan search ter-wire */}
         <Topbar
           title="Data Balita"
           titleColor="#D45060"
@@ -435,7 +435,7 @@ export default function DataBalitaPage() {
                 <div className="flex-1 pt-6 pb-[66px] px-4 flex flex-col items-center justify-center">
                   {/* Circle peach dengan icon search-x */}
                 <div className="w-[90px] h-[90px] sm:w-[80px] sm:h-[80px] lg:w-[80px] lg:h-[80px] rounded-full bg-[#FCEBD5] flex items-center justify-center mb-5 sm:mb-6 lg:mb-7">
-                  {/* 👇 Pakai MaskIcon — warna otomatis #D45060 */}
+                  {/* Pakai MaskIcon — warna otomatis #D45060 */}
                   <MaskIcon
                     src="/images/search-x.svg"
                     alt="Tidak ditemukan"

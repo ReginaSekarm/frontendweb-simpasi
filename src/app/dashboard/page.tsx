@@ -10,7 +10,6 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 
 // ================= ICON CUSTOM (SVG) =================
-// user-alert-filled -> "Perlu Dipantau"
 const IconUserExclamation = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
     <path
@@ -22,7 +21,7 @@ const IconUserExclamation = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// bowl-with-spoon -> "Resep Dibuat" & aktivitas resep
+// bowl-with-spoon - "Resep Dibuat" & aktivitas resep
 const IconBowlSpoon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
     <path
@@ -32,7 +31,7 @@ const IconBowlSpoon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-  // clipboard-list -> "Total Balita"
+// clipboard-list - "Total Balita"
 const ClipboardList = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 384 512" fill="none" aria-hidden="true" {...props}>
     <path
@@ -61,7 +60,6 @@ const STATS = [
   { label: 'Pemeriksaan', value: 10, icon: Stethoscope, iconBg: 'bg-[#76C0EC]/40', iconColor: 'text-[#006199]' },
 ];
 
-
 // Aktivitas
 const ACTIVITIES: Activity[] = [
   { id: 1, time: '2 menit lalu', description: 'Menambahkan resep "Bubur Udang Wortel"', status: 'Draft', type: 'resep' },
@@ -84,7 +82,7 @@ const ACTIVITIES: Activity[] = [
   { id: 18, time: '3 hari lalu', description: 'Menambahkan resep "Puree Kentang Ayam"', status: 'Terpublikasi', type: 'resep' },
   { id: 19, time: '4 hari lalu', description: 'Memeriksa "Fahri Ramadhan" (13 bulan)', status: 'Normal', type: 'pemeriksaan' },
   { id: 20, time: '4 hari lalu', description: 'Menambahkan resep "Bubur Jagung Manis"', status: 'Draft', type: 'resep' },
-  ];
+];
 
 const ITEMS_PER_PAGE = 5;
 
@@ -105,11 +103,26 @@ export default function DashboardKaderPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
 
-  // Cek apakah ada aktivitas
-  const hasActivities = ACTIVITIES.length > 0;
-  const totalPages = Math.max(1, Math.ceil(ACTIVITIES.length / ITEMS_PER_PAGE));
+  // State pencarian (dikirim ke Topbar)
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const paginatedActivities = ACTIVITIES.slice(
+  // Cek apakah ada aktivitas (data asli, tanpa filter)
+  const hasActivities = ACTIVITIES.length > 0;
+
+  // Filter aktivitas berdasarkan pencarian (deskripsi, status, waktu)
+  const keyword = searchQuery.trim().toLowerCase();
+  const filteredActivities = keyword
+    ? ACTIVITIES.filter(
+        (a) =>
+          a.description.toLowerCase().includes(keyword) ||
+          a.status.toLowerCase().includes(keyword) ||
+          a.time.toLowerCase().includes(keyword)
+      )
+    : ACTIVITIES;
+
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / ITEMS_PER_PAGE));
+
+  const paginatedActivities = filteredActivities.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -136,6 +149,11 @@ export default function DashboardKaderPage() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Kembali ke halaman 1 setiap kali pencarian berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   return (
     <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
       <Sidebar
@@ -150,11 +168,13 @@ export default function DashboardKaderPage() {
           titleColor="#D45060"
           showSearch
           searchPlaceholder="Search........"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
           onMenuClick={() => setSidebarOpen(true)}
         />
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-6 pt-4 sm:pt-5 lg:pt-6 pb-4 sm:pb-5 lg:pb-6">
-          
+
           {/* ============ STAT CARDS ============ */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-5">
             {STATS.map((stat) => {
@@ -182,7 +202,7 @@ export default function DashboardKaderPage() {
 
           {/* ============ AKTIVITAS TERBARU ============ */}
           <div className="mt-5 sm:mt-7 lg:mt-9 rounded-t-[12px] lg:rounded-t-[14px] overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.15)]">
-            
+
             {/* Header */}
             <div className="bg-[#1A7772] h-[44px] sm:h-[52px] lg:h-[60px] px-4 lg:px-6 flex items-center justify-between">
               <h2 className="text-white font-bold text-[14px] sm:text-[16px] lg:text-[18px] leading-[18px] lg:leading-[22px]">
@@ -191,7 +211,7 @@ export default function DashboardKaderPage() {
               {/* Info halaman — hanya muncul kalau ada data */}
               {hasActivities && (
                 <span className="text-white/80 text-[10px] sm:text-[11px] lg:text-[12px] font-semibold">
-                  Hal. {currentPage} dari {totalPages} • {ACTIVITIES.length} data
+                  Hal. {currentPage} dari {totalPages} • {filteredActivities.length} data
                 </span>
               )}
             </div>
@@ -232,9 +252,19 @@ export default function DashboardKaderPage() {
                   Aktivitas seperti pemeriksaan balita dan resep MPASI yang Anda buat akan muncul di sini.
                 </p>
               </div>
+            ) : filteredActivities.length === 0 ? (
+              /* KONDISI 2: HASIL PENCARIAN KOSONG */
+              <div className="bg-white py-10 sm:py-14 lg:py-16 px-4 flex flex-col items-center justify-center">
+                <h3 className="text-black font-semibold text-[16px] sm:text-[18px] lg:text-[20px] leading-[22px] sm:leading-[26px] text-center mb-2">
+                  Aktivitas Tidak Ditemukan
+                </h3>
+                <p className="text-black/80 font-normal text-[12px] sm:text-[13px] lg:text-[15px] leading-[18px] sm:leading-[20px] lg:leading-[22px] text-center max-w-[320px] sm:max-w-[380px] lg:max-w-[440px] break-words">
+                  Tidak ada aktivitas yang cocok dengan &quot;{searchQuery}&quot;.
+                </p>
+              </div>
             ) : (
               <>
-                {/* KONDISI 2: LIST AKTIVITAS */}
+                {/* KONDISI 3: LIST AKTIVITAS */}
                 <div className="bg-white relative overflow-hidden">
                   <div
                     key={currentPage}
@@ -279,7 +309,7 @@ export default function DashboardKaderPage() {
                   </div>
                 </div>
 
-                {/* KONDISI 3: PAGINATION — hanya muncul kalau ada data */}
+                {/* KONDISI 4: PAGINATION — hanya muncul kalau ada data */}
                 <div className="bg-white flex items-center justify-between gap-2 px-4 lg:px-6 pt-2 pb-3 lg:pb-4">
                   <span className="lg:hidden text-[10px] text-[#8F8F8F] font-semibold">
                     Hal. {currentPage} dari {totalPages}

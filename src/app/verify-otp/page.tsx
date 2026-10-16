@@ -88,7 +88,7 @@ function VerifyOTPContent() {
   return (
     <>
       <AuthLayout>
-        {/* 👇 Card disamakan dengan Login Kader */}
+        {/* Card disamakan dengan Login Kader */}
         <div
           className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
           style={{
@@ -117,7 +117,7 @@ function VerifyOTPContent() {
               <span className="font-semibold">{email}</span>
             </p>
 
-            {/* 👇 Input OTP 4 Kotak diperkecil */}
+            {/* Input OTP 4 Kotak diperkecil */}
             <div className="flex justify-center gap-2 sm:gap-2.5 mb-5">
               {otp.map((digit, idx) => (
                 <input
@@ -162,7 +162,7 @@ function VerifyOTPContent() {
               </button>
             </div>
 
-            {/* 👇 Tombol Verifikasi disamakan dengan Login Kader */}
+            {/* Tombol Verifikasi disamakan dengan Login Kader */}
             <div className="flex justify-center sm:justify-start sm:pl-[38px]">
               <button
                 type="submit"
@@ -178,7 +178,6 @@ function VerifyOTPContent() {
 
       {/* ============ TOAST ============ */}
       {showToast && (
-        // 👇 Toast diperkecil
         <div
           role="status"
           aria-live="polite"

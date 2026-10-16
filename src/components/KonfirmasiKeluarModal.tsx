@@ -25,7 +25,7 @@ export default function KonfirmasiKeluarModal({ onTetap, onKeluar }: Props) {
           Anda akan keluar dari akun ini. Yakin ingin melanjutkan?
         </p>
 
-        {/* 👇 Tombol pakai flexbox — horizontal, sejajar, lebar sama */}
+        {/* Tombol pakai flexbox — horizontal, sejajar, lebar sama */}
         <div className="mt-6 sm:mt-7 flex items-center justify-center gap-3">
           <button
             type="button"

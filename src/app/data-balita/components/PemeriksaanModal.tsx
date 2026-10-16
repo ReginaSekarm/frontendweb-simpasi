@@ -16,7 +16,7 @@ type Props = {
 };
 
 export default function PemeriksaanModal({ balita, data, errors, onChange, onToggleBahan, onClose, onSave, onDelete }: Props) {
-  // 👇 Ukuran input dan label diperkecil
+  // Ukuran input dan label diperkecil
   const inputReadonly = 'w-full h-[40px] px-3 rounded-[8px] bg-[#D9D9D9] text-[#5a5a5a] text-[13px] font-semibold cursor-not-allowed';
   const inputParam =
     'w-full h-[40px] px-3 rounded-[8px] bg-[#D9D9D9]/30 border border-black/50 text-[#1a1a1a] placeholder-[#8F8F8F] text-[13px] font-medium focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition';
@@ -28,10 +28,10 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      {/* 👇 Ukuran modal utama diperkecil dari 1100px menjadi 850px */}
+      {/* Ukuran modal utama diperkecil dari 1100px menjadi 850px */}
       <div className="relative w-full max-w-[850px] max-h-[92vh] flex flex-col bg-white rounded-[16px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex-1 overflow-y-auto px-7 pt-6 pb-5">
-          {/* 👇 Ukuran judul dan deskripsi modal diperkecil */}
+          {/* Ukuran judul dan deskripsi modal diperkecil */}
           <div className="mb-5">
             <h1 className="text-[20px] font-bold text-black leading-tight">Pemeriksaan Stunting</h1>
             <p className="mt-1 text-[12px] text-black leading-snug">Pastikan data diinput sesuai dengan pengukuran fisik(BLOM FIKS)</p>
@@ -48,7 +48,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-3">
               <div>
                 <label className={labelStyle}>Jenis Kelamin</label>
-                {/* 👇 Tombol jenis kelamin diperkecil */}
+                {/* Tombol jenis kelamin diperkecil */}
                 <div className="flex rounded-[8px] overflow-hidden">
                   <div className={`flex-1 h-[40px] flex items-center justify-center gap-2 font-semibold text-[13px] ${balita.jenisKelamin === 'Laki - laki' ? 'bg-[#518EB6] text-white' : 'bg-[#D9D9D9] text-[#8F8F8F]'}`}>
                     <span className="text-[15px] leading-none">♂</span>
@@ -73,7 +73,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
                   <input type="text" value={balita.tempatLahir} disabled className={`${inputReadonly} flex-[1]`} />
                   <div className="relative flex-[1.4]">
                     <input type="text" value={balita.tanggalLahir} disabled className={`${inputReadonly} pr-9`} />
-                    {/* 👇 Icon kalender diperkecil */}
+                    {/* Icon kalender diperkecil */}
                     <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-black pointer-events-none" />
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
 
           <div className="mb-5">
             <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">Bahan Makanan Yang Direkomendasikan</h2>
-            {/* 👇 Tombol bahan makanan diperkecil */}
+            {/* Tombol bahan makanan diperkecil */}
             <div className="flex flex-wrap gap-2">
               {BAHAN_MAKANAN_LIST.map((bahan) => {
                 const isActive = data.bahanMakanan.includes(bahan);
@@ -153,7 +153,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
 
             <div className="mb-4">
               <label className={labelStyle}>Kondisi Balita</label>
-              {/* 👇 Tombol kondisi diperkecil */}
+              {/* Tombol kondisi diperkecil */}
               <div className="flex flex-wrap gap-2">
                 <button 
                   type="button" 
@@ -192,7 +192,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
                   placeholder="dd/mm/yyyy" 
                   className={`w-full h-[40px] px-3 pr-9 rounded-[8px] bg-[#D9D9D9]/30 border border-black/50 text-[#1a1a1a] placeholder-[#8F8F8F] text-[13px] font-medium focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition ${inputErr('tanggalPemeriksaan')}`} 
                 />
-                {/* 👇 Icon kalender diperkecil */}
+                {/* Icon kalender diperkecil */}
                 <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-black pointer-events-none" />
               </div>
               {errText('tanggalPemeriksaan')}
@@ -201,7 +201,7 @@ export default function PemeriksaanModal({ balita, data, errors, onChange, onTog
         </div>
 
         {/* Footer */}
-        {/* 👇 Padding footer dan ukuran tombol diperkecil */}
+        {/* Padding footer dan ukuran tombol diperkecil */}
         <div className="border-t border-[#AAA6A6]/40 bg-white px-7 py-3.5 flex items-center justify-between">
           <button 
             type="button" 

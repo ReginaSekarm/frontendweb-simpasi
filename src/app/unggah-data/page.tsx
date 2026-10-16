@@ -29,20 +29,18 @@ import { usePemeriksaanForm } from './hooks/usePemeriksaanForm';
 // ================= EMPTY STATE =================
 const ICON_CLASS = 'w-[40px] h-[40px] text-[#D45060]/80';
 
-// Ikon buku catatan + tanda plus (Pemeriksaan kosong)
+// Ikon health-book (Pemeriksaan kosong)
 const NotebookPlusIcon = (
   <svg
     className={ICON_CLASS}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    strokeWidth={1.8}
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    aria-hidden="true"
   >
-    <rect x="6" y="3" width="13" height="18" rx="2" />
-    <path d="M3 7h3M3 11h3M3 15h3" />
-    <path d="M12.5 9v6M9.5 12h6" />
+    <path
+      fill="currentColor"
+      d="M20 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-2H3v-2h2v-2H3v-2h2v-2H3V9h2V7H3V5h2V3a1 1 0 0 1 1-1zm-1 2H7v16h12zm-5 4v3h3v2h-3.001L14 16h-2l-.001-3H9v-2h3V8z"
+    />
   </svg>
 );
 
@@ -72,12 +70,21 @@ function getEmptyStateConfig(
       title: 'Tidak Ditemukan',
       desc: `Tidak ada resep dengan nama "${searchQuery.trim()}". Coba kata kunci lain.`,
       icon: (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src="/images/search-x.svg"
-          alt="Tidak ditemukan"
-          className="w-[40px] h-[40px] object-contain"
-        />
+        <svg
+          className={ICON_CLASS}
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M18 10c0-4.41-3.59-8-8-8s-8 3.59-8 8s3.59 8 8 8c1.85 0 3.54-.63 4.9-1.69l5.1 5.1L21.41 20l-5.1-5.1A8 8 0 0 0 18 10M4 10c0-3.31 2.69-6 6-6s6 2.69 6 6s-2.69 6-6 6s-6-2.69-6-6"
+          />
+          <path
+            fill="currentColor"
+            d="M12.29 6.29L10 8.59l-2.29-2.3l-1.42 1.42L8.59 10l-2.3 2.29l1.42 1.42l2.29-2.3l2.29 2.3l1.42-1.42l-2.3-2.29l2.3-2.29z"
+          />
+        </svg>
       ),
       showCta: false,
     };
@@ -311,9 +318,20 @@ function UnggahDataContent() {
                     {filteredData.length === 0 ? (
                       <div className="py-12 px-6 flex flex-col items-center justify-center">
                         <div className="w-[80px] h-[80px] rounded-full bg-[#FCEBD5] flex items-center justify-center mb-4">
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D45060" strokeWidth="1.8">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M8 15h8M9 9h.01M15 9h.01" />
+                          <svg
+                            className="w-[40px] h-[40px] text-[#D45060]/80"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M18 10c0-4.41-3.59-8-8-8s-8 3.59-8 8s3.59 8 8 8c1.85 0 3.54-.63 4.9-1.69l5.1 5.1L21.41 20l-5.1-5.1A8 8 0 0 0 18 10M4 10c0-3.31 2.69-6 6-6s6 2.69 6 6s-2.69 6-6 6s-6-2.69-6-6"
+                            />
+                            <path
+                              fill="currentColor"
+                              d="M12.29 6.29L10 8.59l-2.29-2.3l-1.42 1.42L8.59 10l-2.3 2.29l1.42 1.42l2.29-2.3l2.29 2.3l1.42-1.42l-2.3-2.29l2.3-2.29z"
+                            />
                           </svg>
                         </div>
                         <p className="text-[15px] font-semibold text-black mb-1">Tidak ada balita ditemukan</p>
@@ -321,7 +339,7 @@ function UnggahDataContent() {
                           Coba ubah kata kunci pencarian atau tambahkan data balita baru
                         </p>
                       </div>
-                    ) : (
+                    ) :  (
                       filteredData.map((balita) => (
                         <button
                           key={balita.id}

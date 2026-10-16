@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { CircleUserRound, Bell, MessageCircle, Menu, X } from 'lucide-react';
 import { DUMMY_NOTIFIKASI } from '../app/notifikasi/data';
+import { useProfilFoto } from './profilFoto'; 
 
 // ================= TYPES =================
 type TopbarProps = {
@@ -44,7 +45,7 @@ export default function Topbar({
   searchPlaceholder = 'Search........',
   searchValue,
   onSearchChange,
-  avatarSrc = '/images/profil-kader.png',
+  avatarSrc,
   height = 60,
   notifCount,
   hideSearch = false,
@@ -56,7 +57,6 @@ export default function Topbar({
 
   const notifRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
-  // 👇 Ref untuk container search bar mobile
   const mobileSearchWrapperRef = useRef<HTMLDivElement>(null);
 
   // Tutup notif dropdown saat klik di luar
@@ -70,7 +70,6 @@ export default function Topbar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 👇 Tutup search bar mobile saat klik/tap di luar search bar
   useEffect(() => {
     if (!mobileSearchOpen) return;
 
@@ -108,6 +107,9 @@ export default function Topbar({
 
   const computedUnread = DUMMY_NOTIFIKASI.filter((n) => !n.dibaca).length;
   const finalCount = notifCount ?? computedUnread;
+  const fotoProfil = useProfilFoto();
+  // Profil jadi sumber utama → kalau profil kosong, fallback ke avatarSrc (kalau ada), kalau dua-duanya kosong → icon default
+  const finalAvatar = fotoProfil || avatarSrc || '';
   const previewNotif = DUMMY_NOTIFIKASI.slice(0, 4);
 
   return (
@@ -117,8 +119,7 @@ export default function Topbar({
     >
       {/* ============ MOBILE: SEARCH MODE ============ */}
       {mobileSearchOpen ? (
-        // 👇 Container full-width dengan ref — TANPA tombol panah back
-        <div
+       <div
           ref={mobileSearchWrapperRef}
           className="flex items-center gap-2 w-full md:hidden"
         >
@@ -284,13 +285,16 @@ export default function Topbar({
             {/* Avatar */}
             <div className="relative w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] rounded-full bg-[#D9D9D9] overflow-hidden shrink-0">
               <CircleUserRound className="absolute inset-0 w-full h-full text-black/70" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarSrc}
-                alt="Profile Kader"
-                className="relative w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
+              {finalAvatar && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={finalAvatar}
+                  src={finalAvatar}
+                  alt="Profile Kader"
+                  className="relative w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
             </div>
           </div>
         </>

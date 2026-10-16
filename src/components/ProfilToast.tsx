@@ -6,14 +6,13 @@ type Props = {
 
 export default function ProfilToast({ onClose }: Props) {
   return (
-    // 👇 Ukuran container, posisi, dan shadow disesuaikan
     <div
       className="fixed top-[24px] right-[24px] z-[10000] shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
       style={{ width: '380px', height: '100px' }}
       role="status"
       aria-live="polite"
     >
-      {/* 👇 Background hijau (aksen kiri) diperkecil */}
+      {/* Background hijau (aksen kiri) diperkecil */}
       <div
         className="absolute"
         style={{
@@ -26,7 +25,7 @@ export default function ProfilToast({ onClose }: Props) {
         }}
       />
 
-      {/* 👇 Background putih diperkecil */}
+      {/* Background putih diperkecil */}
       <div
         className="absolute"
         style={{
@@ -39,7 +38,7 @@ export default function ProfilToast({ onClose }: Props) {
         }}
       />
 
-      {/* 👇 Ikon centang diperkecil dari 44px menjadi 28px */}
+      {/* Ikon centang diperkecil dari 44px menjadi 28px */}
       <svg
         className="absolute"
         style={{ left: '20px', top: '18px', width: '28px', height: '28px' }}
@@ -58,7 +57,7 @@ export default function ProfilToast({ onClose }: Props) {
         />
       </svg>
 
-      {/* 👇 Judul diperkecil dari 21.4px menjadi 14px */}
+      {/* Judul diperkecil dari 21.4px menjadi 14px */}
       <h3
         className="absolute font-bold text-black"
         style={{ left: '58px', top: '19px', fontSize: '14px', lineHeight: '17px' }}
@@ -66,7 +65,7 @@ export default function ProfilToast({ onClose }: Props) {
         Profil Berhasil Disimpan
       </h3>
 
-      {/* 👇 Deskripsi diperkecil dari 21.4px menjadi 12px */}
+      {/* Deskripsi diperkecil dari 21.4px menjadi 12px */}
       <p
         className="absolute"
         style={{

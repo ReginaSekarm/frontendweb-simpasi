@@ -18,22 +18,22 @@ export default function ConfirmDeleteModal({ type, onCancel, onConfirm }: Props)
       className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 p-3 sm:p-4"
       onClick={onCancel}
     >
-      {/* 👇 Modal responsive: padding & max-width menyesuaikan layar */}
+      {/*  Modal responsive: padding & max-width menyesuaikan layar */}
       <div
         className="relative w-full max-w-[520px] bg-white rounded-[14px] sm:rounded-[16px] shadow-2xl px-5 sm:px-[40px] pt-7 sm:pt-[40px] pb-6 sm:pb-[36px]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 👇 Judul responsive */}
+        {/* Judul responsive */}
         <h2 className="text-center text-black font-bold text-[18px] sm:text-[24px] leading-[1.25] sm:leading-[1.2]">
           {title}
         </h2>
 
-        {/* 👇 Deskripsi responsive */}
+        {/* Deskripsi responsive */}
         <p className="mt-3 sm:mt-[16px] text-center text-black text-[13px] sm:text-[15px] leading-[1.5] sm:leading-[1.4] font-normal">
           {description}
         </p>
 
-        {/* 👇 Tombol: stack vertikal di mobile, horizontal di desktop */}
+        {/*  Tombol: stack vertikal di mobile, horizontal di desktop */}
         <div className="mt-6 sm:mt-[32px] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-[24px]">
           <button
             type="button"

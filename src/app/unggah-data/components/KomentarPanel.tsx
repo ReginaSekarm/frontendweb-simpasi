@@ -23,12 +23,12 @@ export default function KomentarPanel({ resep, komentar, onClose }: Props) {
   };
 
   return (
-    // 👇 Lebar panel diperkecil dari 460px menjadi 320px
+    // Lebar panel diperkecil dari 460px menjadi 320px
     <aside className="w-[320px] shrink-0 bg-white border-l border-[#D9D9D9] flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 border-b border-[#D9D9D9] flex items-start justify-between gap-3">
         <div className="min-w-0">
-          {/* 👇 Font judul dan subtitle diperkecil */}
+          {/* Font judul dan subtitle diperkecil */}
           <h2 className="text-[16px] font-bold text-black leading-tight">
             Komentar ({komentar.length})
           </h2>
@@ -68,7 +68,7 @@ export default function KomentarPanel({ resep, komentar, onClose }: Props) {
               >
                 {/* Header: nama + waktu */}
                 <div className="flex items-start justify-between gap-2">
-                  {/* 👇 Font nama dan waktu diperkecil */}
+                  {/* Font nama dan waktu diperkecil */}
                   <span className="text-[12px] font-bold text-black truncate">{k.nama}</span>
                   <span className="shrink-0 text-[10px] text-[#8F8F8F]">{k.waktu}</span>
                 </div>
@@ -88,7 +88,6 @@ export default function KomentarPanel({ resep, komentar, onClose }: Props) {
 
                 {/* Tombol Balas / Input */}
                 {isReplying ? (
-                  // 👇 Input balasan diperkecil
                   <div className="mt-2 flex items-center gap-2 rounded-[8px] border border-[#D45060] px-2.5 py-1.5">
                     <input
                       type="text"
@@ -118,7 +117,7 @@ export default function KomentarPanel({ resep, komentar, onClose }: Props) {
                       setReplyOpenId(k.id);
                       setReplyText('');
                     }}
-                    // 👇 Font tombol balas diperkecil
+                    //  Font tombol balas diperkecil
                     className="mt-1.5 text-[11px] font-semibold text-[#D45060] hover:underline cursor-pointer"
                   >
                     Balas

@@ -11,7 +11,7 @@ export default function ConfirmDeleteModal({ onClose, onConfirm }: Props) {
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-3 sm:p-4"
       onClick={onClose}
     >
-      {/* 👇 Modal pakai flexbox — auto layout, bukan absolute */}
+      {/* Modal pakai flexbox — auto layout, bukan absolute */}
       <div
         className="relative w-full max-w-[480px] bg-white rounded-[14px] sm:rounded-[16px] shadow-2xl px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-8"
         onClick={(e) => e.stopPropagation()}

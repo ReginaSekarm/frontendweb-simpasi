@@ -6,13 +6,6 @@ import Image from 'next/image';
 const FRAME_W = 1440;
 const FRAME_H = 900;
 
-/**
- * Konversi px design 1440×900 → nilai CSS yang menscale proporsional
- * terhadap viewport. Pakai min/max supaya ukuran & posisi selalu ambil
- * skala terkecil (proporsional, tidak pecah aspect ratio).
- *   positif → min(vw, vh)
- *   negatif → max(vw, vh)
- */
 const s = (px: number): string => {
   const a = `${((px / FRAME_W) * 100).toFixed(2)}vw`;
   const b = `${((px / FRAME_H) * 100).toFixed(2)}vh`;
@@ -151,24 +144,27 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="w-full flex flex-col lg:flex-row items-center lg:justify-end gap-6 lg:gap-10">
 
           {/* Hero mobile */}
-          <div className="lg:hidden relative flex-1 flex items-center justify-center w-full min-h-[460px] sm:min-h-[560px]">
-            <div className="absolute w-[520px] h-[460px] sm:w-[680px] sm:h-[580px] -left-6 sm:-left-12 pointer-events-none z-0">
-              <Image
-                src="/images/star_besar.png"
-                alt=""
-                fill
-                priority
-                sizes="(max-width: 640px) 520px, 680px"
-                className="object-contain"
-              />
-            </div>
-            <div className="relative w-[340px] h-[280px] sm:w-[480px] sm:h-[390px] z-10 drop-shadow-[0px_-6.5px_25.4px_#FFFFFF]">
+            <div className="lg:hidden relative flex items-center justify-center w-full min-h-[240px] sm:min-h-[360px]">
+              {/* Bintang: dipusatkan tepat di belakang hero */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[270px] sm:w-[480px] sm:h-[405px] pointer-events-none z-0">
+                <Image
+                  src="/images/star_besar.png"
+                  alt=""
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 320px, 480px"
+                  className="object-contain"
+                />
+              </div>
+
+          {/* Hero */}
+            <div className="relative w-[210px] h-[170px] sm:w-[320px] sm:h-[260px] z-10 drop-shadow-[0px_-6.5px_25.4px_#FFFFFF]">
               <Image
                 src="/images/hero_images_admin.png"
                 alt="Hero"
                 fill
                 priority
-                sizes="(max-width: 640px) 340px, 480px"
+                sizes="(max-width: 640px) 210px, 320px"
                 className="object-contain"
               />
             </div>

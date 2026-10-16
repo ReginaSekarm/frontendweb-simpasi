@@ -193,7 +193,7 @@ export default function PemeriksaanModal({
                   <label className={labelStyle}>Tempat &amp; Tanggal lahir</label>
                   <div className="flex gap-2">
                     <input type="text" value={data.tempatLahir} onChange={(e) => onChange('tempatLahir', e.target.value)} placeholder="Tempat" className={`${inputIdentitas} flex-[1] ${inputErr('tempatLahir')}`} />
-                    {/* 👇 Tanggal lahir pakai date picker */}
+                    {/* Tanggal lahir pakai date picker */}
                     <div className="relative flex-[1.4]">
                       <input
                         type="text"
@@ -313,7 +313,7 @@ export default function PemeriksaanModal({
 
               <div className="max-w-[260px]">
                 <label className={labelStyle}>Tanggal Pemeriksaan</label>
-                {/* 👇 Tanggal pemeriksaan pakai date picker */}
+                {/* Tanggal pemeriksaan pakai date picker */}
                 <div className="relative">
                   <input
                     type="text"

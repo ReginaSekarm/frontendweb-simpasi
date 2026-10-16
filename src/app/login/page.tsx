@@ -60,6 +60,7 @@ export default function AdminLoginPage() {
               <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Email
               </label>
+              
               <input
                 type="email"
                 required

@@ -48,7 +48,7 @@ function ResetPasswordContent() {
   return (
     <>
       <AuthLayout>
-        {/* 👇 Card disamakan dengan Login Kader */}
+        {/* Card disamakan dengan Login Kader */}
         <div
           className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
           style={{
@@ -150,7 +150,7 @@ function ResetPasswordContent() {
 
       {/* ============ TOAST: VERIFIKASI EMAIL BERHASIL ============ */}
       {showToast && (
-        // 👇 Toast diperkecil
+        // Toast diperkecil
         <div
           role="status"
           aria-live="polite"

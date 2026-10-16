@@ -2,12 +2,12 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Pencil } from 'lucide-react';
+import { Pencil, CircleUserRound } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
-import LengkapiProfilModal from '../../components/LengkapiProfilModal';
 import GantiKataSandiTab from '../../components/GantiKataSandiTab';
 import ProfilToast from '../../components/ProfilToast';
+import { useProfilFoto } from '../../components/profilFoto';
 
 // ================= TYPES =================
 type ProfilKader = {
@@ -48,18 +48,21 @@ function PengaturanContent() {
   const searchParams = useSearchParams();
   const lengkapiParam = searchParams.get('lengkapi');
 
-  // 👇 STATE BARU: untuk sidebar drawer mobile
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [showLengkapi, setShowLengkapi] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [activeTab, setActiveTab] = useState<'profil' | 'password'>('profil');
   const [profil] = useState<ProfilKader>(DUMMY_PROFIL);
 
+  // ⭐ FOTO PROFIL REAKTIF — sinkron dengan Topbar & halaman /lengkapiprofil
+  const fotoProfil = useProfilFoto();
+
+  // Kalau ada ?lengkapi=1 → langsung pindah ke halaman /lengkapiprofil (mode lengkapi)
   useEffect(() => {
-    if (lengkapiParam === '1') setShowLengkapi(true);
-  }, [lengkapiParam]);
+    if (lengkapiParam === '1') {
+      router.replace('/lengkapiprofil');
+    }
+  }, [lengkapiParam, router]);
 
   useEffect(() => {
     if (!showToast) return;
@@ -76,19 +79,8 @@ function PengaturanContent() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const handleSavedLengkapi = () => {
-    setShowLengkapi(false);
-    router.push('/dashboard');
-  };
-
-  const handleSavedEdit = () => {
-    setShowEdit(false);
-    setShowToast(true);
-  };
-
   return (
     <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
-      {/* 👇 Sidebar dengan drawer mobile */}
       <Sidebar
         activePage="pengaturan"
         isOpen={sidebarOpen}
@@ -96,17 +88,15 @@ function PengaturanContent() {
       />
 
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col min-w-0">
-        {/* 👇 Topbar dengan tombol hamburger */}
         <Topbar
           title="Pengaturan"
           titleColor="#000000"
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        {/* Padding area konten responsive */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 pb-6">
-          
-          {/* Tab kuning — responsive */}
+
+          {/* Tab kuning */}
           <div className="w-full max-w-[360px] h-[48px] sm:h-[52px] bg-[#FEEB96] rounded-[12px] p-[5px] sm:p-[6px] flex mb-4 sm:mb-5">
             {(['profil', 'password'] as const).map((tab) => (
               <button
@@ -123,9 +113,8 @@ function PengaturanContent() {
           </div>
 
           {activeTab === 'profil' && (
-            // Container profil putih DITARUH DI TENGAH dengan mx-auto
             <div className="max-w-[720px] mx-auto bg-white rounded-[14px] border border-[#AAA6A6]/70 px-4 sm:px-6 lg:px-7 pt-5 sm:pt-6 pb-6 sm:pb-7">
-              
+
               {/* ============ HEADER ============ */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 mb-5 sm:mb-6">
                 <div>
@@ -136,7 +125,7 @@ function PengaturanContent() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setShowEdit(true)}
+                  onClick={() => router.push('/lengkapiprofil?mode=edit')}
                   className="flex items-center justify-center gap-2 h-[36px] sm:h-[38px] px-3.5 sm:px-4 bg-[#D45060] hover:bg-[#c44454] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#D45060]/50 focus-visible:outline-none text-white font-semibold text-[13px] sm:text-[14px] rounded-[10px] transition-all duration-150 cursor-pointer self-start sm:self-auto"
                 >
                   <Pencil className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
@@ -146,19 +135,18 @@ function PengaturanContent() {
 
               {/* ============ AVATAR + NAMA ============ */}
               <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-7">
-                <div className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[100px] lg:h-[100px] rounded-full overflow-hidden bg-[#D9D9D9] shrink-0">
-                  {profil.foto ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={profil.foto} alt="Foto Profil" className="w-full h-full object-cover" />
-                  ) : (
+                <div className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[100px] lg:h-[100px] rounded-full overflow-hidden bg-[#D9D9D9] shrink-0 relative">
+                  {/* ⭐ Icon default di belakang */}
+                  <CircleUserRound className="absolute inset-0 w-full h-full text-black/70" strokeWidth={1} />
+                  {/* ⭐ Foto dari useProfilFoto() kalau ada */}
+                  {fotoProfil && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src="/images/profil-kader.png"
+                      key={fotoProfil}
+                      src={fotoProfil}
                       alt="Foto Profil"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
+                      className="relative w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   )}
                 </div>
@@ -197,19 +185,12 @@ function PengaturanContent() {
           )}
 
           {activeTab === 'password' && (
-            // Form Ganti Kata Sandi juga ditaruh di tengah
             <div className="max-w-[720px] mx-auto flex justify-center">
               <GantiKataSandiTab />
             </div>
           )}
         </div>
       </main>
-
-      {showLengkapi && <LengkapiProfilModal onSaved={handleSavedLengkapi} />}
-
-      {showEdit && (
-        <LengkapiProfilModal onSaved={handleSavedEdit} onClose={() => setShowEdit(false)} />
-      )}
 
       {showToast && <ProfilToast onClose={() => setShowToast(false)} />}
     </div>
