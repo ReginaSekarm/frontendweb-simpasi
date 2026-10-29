@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Plus,
-  Pencil,
-  Trash2,
   AlertCircle,
   ChefHat,
 } from 'lucide-react';
@@ -348,7 +346,16 @@ function DetailContent() {
                             title={item.canEdit ? 'Edit' : 'Hanya bisa diedit dalam 24 jam'}
                             className={`w-[28px] h-[28px] rounded-[7px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-black/70 hover:bg-[#F7F8F0] cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
                           >
-                            <Pencil className={`w-[15px] h-[15px] ${item.canEdit ? 'text-black/70' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
+                            <img
+                              src="/images/edit-pencil.svg"
+                              alt="Edit"
+                              className="w-[15px] h-[15px] object-contain"
+                              style={{
+                                filter: item.canEdit
+                                  ? 'brightness(0) opacity(0.7)'
+                                  : 'brightness(0) invert(73%) sepia(3%) saturate(168%) hue-rotate(314deg) brightness(91%) contrast(85%)',
+                              }}
+                            />
                           </button>
                           <button
                             type="button"
@@ -357,7 +364,16 @@ function DetailContent() {
                             title={item.canEdit ? 'Hapus' : 'Hanya bisa dihapus dalam 24 jam'}
                             className={`w-[28px] h-[28px] rounded-[7px] border flex items-center justify-center transition-colors ${item.canEdit ? 'bg-white border-[#FF0020] hover:bg-[#D45060]/5 cursor-pointer' : 'bg-white border-[#AAA6A6] cursor-not-allowed'}`}
                           >
-                            <Trash2 className={`w-[15px] h-[15px] ${item.canEdit ? 'text-[#FF0020]' : 'text-[#AAA6A6]'}`} strokeWidth={2} />
+                            <img
+                              src="/images/trash-fill.svg"
+                              alt="Hapus"
+                              className="w-[15px] h-[15px] object-contain"
+                              style={{
+                                filter: item.canEdit
+                                  ? 'brightness(0) saturate(100%) invert(13%) sepia(94%) saturate(7463%) hue-rotate(351deg) brightness(101%) contrast(106%)'
+                                  : 'brightness(0) invert(73%) sepia(3%) saturate(168%) hue-rotate(314deg) brightness(91%) contrast(85%)',
+                              }}
+                            />
                           </button>
                         </div>
                       </div>

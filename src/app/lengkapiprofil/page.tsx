@@ -2,11 +2,30 @@
 
 import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Pencil, Calendar, ChevronDown, CircleUserRound } from 'lucide-react';
+import { Calendar, ChevronDown, CircleUserRound } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PageTransition from '../../components/PageTransition';
 import { useProfilFoto, setProfilFoto, fileToDataUrl } from '../../components/profilFoto';
+
+// ================= ICON EDIT PROFIL (dari file edit-profil.svg) =================
+// Warna mengikuti `currentColor`, jadi diatur lewat class text-*
+function IconEditProfil({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        fill="currentColor"
+        d="M3.995 17.207V19.5a.5.5 0 0 0 .5.5h2.298a.5.5 0 0 0 .353-.146l9.448-9.448l-3-3l-9.452 9.448a.5.5 0 0 0-.147.353m10.837-11.04l3 3l1.46-1.46a1 1 0 0 0 0-1.414l-1.585-1.586a1 1 0 0 0-1.414 0z"
+      />
+    </svg>
+  );
+}
 
 // ================= DATE HELPERS =================
 const BULAN_MAP: Record<string, string> = {
@@ -257,7 +276,8 @@ function ProfilContent() {
                       aria-label="Ubah foto profil"
                       className="absolute bottom-[1px] right-[1px] w-[28px] h-[28px] rounded-full bg-[#D45060] hover:bg-[#c44454] flex items-center justify-center border-[2px] border-white shadow-md cursor-pointer transition-all active:scale-95"
                     >
-                      <Pencil className="w-[14px] h-[14px] text-white" strokeWidth={2.2} />
+                      {/* 👇 Ikon dari file edit-profil.svg */}
+                      <IconEditProfil className="w-[16px] h-[16px] text-white" />
                     </button>
                   </div>
 
