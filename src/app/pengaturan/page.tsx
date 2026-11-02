@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Pencil, CircleUserRound } from 'lucide-react';
+// 1. HAPUS 'Pencil' DARI IMPORT LUCIDE-REACT
+import { CircleUserRound } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import GantiKataSandiTab from '../../components/GantiKataSandiTab';
@@ -128,7 +129,15 @@ function PengaturanContent() {
                   onClick={() => router.push('/lengkapiprofil?mode=edit')}
                   className="flex items-center justify-center gap-2 h-[36px] sm:h-[38px] px-3.5 sm:px-4 bg-[#D45060] hover:bg-[#c44454] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#D45060]/50 focus-visible:outline-none text-white font-semibold text-[13px] sm:text-[14px] rounded-[10px] transition-all duration-150 cursor-pointer self-start sm:self-auto"
                 >
-                  <Pencil className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
+                  {/* 2. GANTI TAG <Pencil /> DENGAN INLINE SVG INI */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]"
+                  >
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                  </svg>
                   <span>Edit Profil</span>
                 </button>
               </div>

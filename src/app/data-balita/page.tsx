@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CaretDown } from '@phosphor-icons/react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
@@ -16,6 +16,29 @@ import BalitaFormModal from './components/BalitaFormModal';
 import PemeriksaanModal from './components/PemeriksaanModal';
 
 const ITEMS_PER_PAGE = 5;
+
+// ================= ICON EDIT (dari file edit-pencil.svg) =================
+// Warna mengikuti `currentColor`, jadi diatur lewat class text-* (hover ikut jalan)
+function IconEdit({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 20h16M4 20v-4l8-8M4 20h4l8-8m-4-4l2.869-2.869l.001-.001c.395-.395.593-.593.821-.667a1 1 0 0 1 .618 0c.228.074.425.272.82.666l1.74 1.74c.396.396.594.594.668.822a1 1 0 0 1 0 .618c-.074.228-.272.426-.668.822h0L16 12.001m-4-4l4 4"
+      />
+    </svg>
+  );
+}
 
 // ================= ICON MASK (ganti warna via bg) =================
 type MaskIconProps = {
@@ -495,7 +518,7 @@ export default function DataBalitaPage() {
                             onClick={() => handleOpenEdit(item)} 
                             className="text-black/70 hover:text-[#D45060] active:scale-90 transition-all cursor-pointer"
                           >
-                            <Pencil className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" strokeWidth={2.2} />
+                            <IconEdit className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
                           </button>
                           <button 
                             type="button" 
