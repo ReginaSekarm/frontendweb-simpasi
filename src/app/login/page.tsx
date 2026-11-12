@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, X } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
-import PageTransition from '../../components/PageTransition';  
+import PageTransition from '../../components/PageTransition';
 import {SYARAT_KETENTUAN, KEBIJAKAN_PRIVASI, KEBIJAKAN_PRIVASI_INTRO,} from '../login/syarat-kebijakan';
+import { api, ApiError } from '../../lib/api';
+import { saveToken } from '../../lib/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,17 +19,53 @@ export default function AdminLoginPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [agreeInModal, setAgreeInModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!agreeTerms) {
-    alert('Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.');
-    return;
-  }
-  console.log({ email, password, rememberMe });
-  // Redirect ke pengaturan untuk lengkapi profil dulu
-  router.push('/pengaturan?lengkapi=1');
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreeTerms) {
+      alert('Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+    try {
+      const { token } = await api<{ token: string }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      saveToken(token, rememberMe);
+
+      // Cek kelengkapan profil kader secara otomatis setelah login sukses
+      try {
+        const profileRes = await api<any>('/kader/profile');
+        const data = profileRes.data || profileRes;
+        
+        // Tentukan apakah profil sudah lengkap (misal NIK dan No HP sudah terisi)
+        const isProfileComplete = Boolean(data && data.nik && data.phone && data.posyandu_name);
+
+        if (!isProfileComplete) {
+          // Pertama kali login / profil belum lengkap -> Wajib lengkapi profil lewat halaman profil mode edit
+          router.push('/profil?mode=edit');
+        } else {
+          // Sudah pernah diisi/lengkap -> Langsung ke dashboard
+          router.push('/dashboard');
+        }
+      } catch {
+        // Fallback jika fetch profil gagal
+        router.push('/profil?mode=edit');
+      }
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Tidak dapat terhubung ke server'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openTermsModal = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.preventDefault();
@@ -60,7 +98,7 @@ export default function AdminLoginPage() {
               <label className="block text-[20px] font-bold text-[#797777] mb-[6px] leading-[24px]">
                 Email
               </label>
-              
+
               <input
                 type="email"
                 required
@@ -142,19 +180,26 @@ export default function AdminLoginPage() {
               </label>
             </div>
 
+            {error && (
+              <p className="mt-[14px] text-center text-[12px] font-medium text-[#D45060]">
+                {error}
+              </p>
+            )}
+
             <div className="mt-[27px] flex justify-center sm:justify-start sm:pl-[38px]">
               <button
                 type="submit"
-                className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm"
+                disabled={loading}
+                className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Masuk
+                {loading ? 'Memproses...' : 'Masuk'}
               </button>
             </div>
           </form>
         </div>
       </AuthLayout>
 
-      {/* ============ MODAL SYARAT & KETENTUAN + KEBIJAKAN PRIVASI ============ */}
+      {/* ============ MODAL SYARAT DAN KEBIJAKAN PRIVASI ============ */}
       {showTermsModal && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
@@ -182,7 +227,6 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 text-[13.5px] text-[#5a5a5a] leading-snug">
-              {/* ====== BAGIAN 1: SYARAT & KETENTUAN ====== */}
               {SYARAT_KETENTUAN.map((s, i) => (
                 <div key={`sk-${i}`}>
                   <h3 className="font-bold text-black text-[15px] mb-1">{s.title}</h3>
@@ -190,7 +234,6 @@ export default function AdminLoginPage() {
                 </div>
               ))}
 
-              {/* ====== BAGIAN 2: KEBIJAKAN PRIVASI ====== */}
               <div className="pt-4 mt-2 border-t border-gray-200">
                 <h2 className="font-bold text-black text-[17px] mb-2">
                   Kebijakan Privasi

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
+import AuthGuard from '../../components/AuthGuard';
+import { dashboardService, recipeService } from '../../services';
 
 // ================= ICON CUSTOM (SVG) =================
 const IconUserExclamation = (props: React.SVGProps<SVGSVGElement>) => (
@@ -42,46 +44,125 @@ const ClipboardList = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 // ================= TYPES =================
-type StatusType = 'Draft' | 'Normal' | 'Terpublikasi' | 'Berisiko' | 'Stunting';
-
 type Activity = {
-  id: number;
+  id: number | string;
   time: string;
   description: string;
-  status: StatusType;
+  status: string;
   type: 'resep' | 'pemeriksaan';
 };
 
-// ================= DUMMY DATA =================
-const STATS = [
-  { label: 'Total Balita', value: 5, icon: ClipboardList, iconBg: 'bg-[#9E5665]/40', iconColor: 'text-[#9E5665]' },
-  { label: 'Perlu Dipantau', value: 2, icon: IconUserExclamation, iconBg: 'bg-[#FFFC8C]/60', iconColor: 'text-[#F1A038]' },
-  { label: 'Resep Dibuat', value: 16, icon: IconBowlSpoon, iconBg: 'bg-[#F88B92]/40', iconColor: 'text-[#DD2E44]' },
-  { label: 'Pemeriksaan', value: 10, icon: Stethoscope, iconBg: 'bg-[#76C0EC]/40', iconColor: 'text-[#006199]' },
-];
+type Stats = {
+  totalBalita: number;
+  perluDipantau: number;
+  resepDibuat: number;
+  pemeriksaan: number;
+};
 
-// Aktivitas
-const ACTIVITIES: Activity[] = [
-  { id: 1, time: '2 menit lalu', description: 'Menambahkan resep "Bubur Udang Wortel"', status: 'Draft', type: 'resep' },
-  { id: 2, time: '20 menit lalu', description: 'Memeriksa "Kentoz Albaiq" (10 bulan)', status: 'Normal', type: 'pemeriksaan' },
-  { id: 3, time: '35 menit lalu', description: 'Menambahkan resep "Kue Ubi Keju"', status: 'Terpublikasi', type: 'resep' },
-  { id: 4, time: '55 menit lalu', description: 'Memeriksa "Alia Putri" (18 bulan)', status: 'Berisiko', type: 'pemeriksaan' },
-  { id: 5, time: '5 jam lalu', description: 'Memeriksa "Lilis Manoban" (22 bulan)', status: 'Stunting', type: 'pemeriksaan' },
-  { id: 6, time: '6 jam lalu', description: 'Menambahkan resep "Nasi Tim Ayam Sayur"', status: 'Draft', type: 'resep' },
-  { id: 7, time: '8 jam lalu', description: 'Memeriksa "Budi Santoso" (15 bulan)', status: 'Normal', type: 'pemeriksaan' },
-  { id: 8, time: '10 jam lalu', description: 'Menambahkan resep "Puding Alpukat"', status: 'Terpublikasi', type: 'resep' },
-  { id: 9, time: '12 jam lalu', description: 'Memeriksa "Sinta Dewi" (20 bulan)', status: 'Berisiko', type: 'pemeriksaan' },
-  { id: 10, time: '1 hari lalu', description: 'Menambahkan resep "Sup Ikan Salmon"', status: 'Terpublikasi', type: 'resep' },
-  { id: 11, time: '1 hari lalu', description: 'Memeriksa "Rizki Pratama" (9 bulan)', status: 'Normal', type: 'pemeriksaan' },
-  { id: 12, time: '1 hari lalu', description: 'Menambahkan resep "Bubur Kacang Hijau"', status: 'Draft', type: 'resep' },
-  { id: 13, time: '2 hari lalu', description: 'Memeriksa "Ayu Lestari" (14 bulan)', status: 'Stunting', type: 'pemeriksaan' },
-  { id: 14, time: '2 hari lalu', description: 'Menambahkan resep "Bola-Bola Nasi"', status: 'Terpublikasi', type: 'resep' },
-  { id: 15, time: '2 hari lalu', description: 'Memeriksa "Dian Puspita" (16 bulan)', status: 'Normal', type: 'pemeriksaan' },
-  { id: 16, time: '3 hari lalu', description: 'Menambahkan resep "Tahu Kukus Brokoli"', status: 'Draft', type: 'resep' },
-  { id: 17, time: '3 hari lalu', description: 'Memeriksa "Eka Wijaya" (11 bulan)', status: 'Berisiko', type: 'pemeriksaan' },
-  { id: 18, time: '3 hari lalu', description: 'Menambahkan resep "Puree Kentang Ayam"', status: 'Terpublikasi', type: 'resep' },
-  { id: 19, time: '4 hari lalu', description: 'Memeriksa "Fahri Ramadhan" (13 bulan)', status: 'Normal', type: 'pemeriksaan' },
-  { id: 20, time: '4 hari lalu', description: 'Menambahkan resep "Bubur Jagung Manis"', status: 'Draft', type: 'resep' },
+const EMPTY_STATS: Stats = {
+  totalBalita: 0,
+  perluDipantau: 0,
+  resepDibuat: 0,
+  pemeriksaan: 0,
+};
+
+// ================= HELPER NORMALISASI RESPONSE =================
+// Dibuat toleran terhadap beberapa kemungkinan nama field dari backend
+const num = (o: any, ...keys: string[]): number => {
+  for (const k of keys) {
+    const v = o?.[k];
+    if (v !== undefined && v !== null && !Number.isNaN(Number(v))) return Number(v);
+  }
+  return 0;
+};
+
+const str = (o: any, ...keys: string[]): string => {
+  for (const k of keys) {
+    const v = o?.[k];
+    if (typeof v === 'string' && v) return v;
+  }
+  return '';
+};
+
+// Terima tanggal ISO -> "5 menit lalu". Kalau sudah berupa teks, dipakai apa adanya.
+const formatWaktu = (v: string): string => {
+  if (!v) return '';
+  const t = new Date(v).getTime();
+  if (Number.isNaN(t)) return v;
+  const menit = Math.floor(Math.max(0, Date.now() - t) / 60000);
+  if (menit < 1) return 'Baru saja';
+  if (menit < 60) return `${menit} menit lalu`;
+  const jam = Math.floor(menit / 60);
+  if (jam < 24) return `${jam} jam lalu`;
+  return `${Math.floor(jam / 24)} hari lalu`;
+};
+
+// Ambil array dari berbagai bentuk response: [..], { data: [..] }, { data: { items: [..] } }
+const toArray = (d: any): any[] => {
+  if (Array.isArray(d)) return d;
+  if (Array.isArray(d?.data)) return d.data;
+  if (Array.isArray(d?.data?.items)) return d.data.items;
+  if (Array.isArray(d?.activities)) return d.activities;
+  if (Array.isArray(d?.aktivitas)) return d.aktivitas;
+  if (Array.isArray(d?.items)) return d.items;
+  return [];
+};
+
+const capitalize = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+
+// Samakan label status dengan kunci STATUS_STYLE
+const toStatusLabel = (raw: string): string => {
+  const s = raw.trim().toLowerCase();
+  if (!s) return 'Draft';
+  if (s === 'published' || s === 'terpublikasi') return 'Terpublikasi';
+  if (s === 'draft') return 'Draft';
+  if (s === 'belum diperiksa') return 'Belum Diperiksa';
+  return capitalize(s); // Normal | Berisiko | Stunting
+};
+
+const normalizeStats = (d: any, jumlahResep: number): Stats => {
+  const s = d?.data ?? d?.stats ?? d?.statistik ?? d ?? {};
+  return {
+    totalBalita: num(s, 'totalBabies', 'totalBalita', 'total_balita', 'balita'),
+    perluDipantau: num(s, 'needsMonitoring', 'perluDipantau', 'perlu_dipantau', 'dipantau'),
+    resepDibuat: jumlahResep,
+    pemeriksaan: num(s, 'totalCheckups', 'pemeriksaan', 'totalPemeriksaan', 'total_pemeriksaan'),
+  };
+};
+
+const normalizeActivities = (d: any): Activity[] =>
+  toArray(d).map((a: any, i: number) => {
+    const tipe = String(a?.type ?? a?.tipe ?? a?.category ?? '').toLowerCase();
+    const isRecipe = tipe.includes('resep') || tipe.includes('recipe');
+
+    // Teks aktivitas: pakai field jadi dari backend, kalau tidak ada rangkai dari data mentah
+    let description = str(a, 'text', 'description', 'deskripsi', 'keterangan', 'message', 'title');
+    if (!description && a?.baby_name) {
+      description = `Memeriksa "${a.baby_name}" (${a.baby_age_months ?? 0} bulan)`;
+    }
+
+    return {
+      id: a?.id ?? i,
+      time: formatWaktu(str(a, 'created_at', 'createdAt', 'time', 'waktu', 'date')),
+      description,
+      status: toStatusLabel(str(a, 'statusLabel', 'status', 'condition_status')),
+      type: isRecipe ? 'resep' : 'pemeriksaan',
+    };
+  });
+
+// ================= KONFIGURASI KARTU =================
+const STAT_CARDS: {
+  key: keyof Stats;
+  label: string;
+  icon: React.ComponentType<any>;
+  iconBg: string;
+  iconColor: string;
+}[] = [
+  { key: 'totalBalita', label: 'Total Balita', icon: ClipboardList, iconBg: 'bg-[#9E5665]/40', iconColor: 'text-[#9E5665]' },
+  { key: 'perluDipantau', label: 'Perlu Dipantau', icon: IconUserExclamation, iconBg: 'bg-[#FFFC8C]/60', iconColor: 'text-[#F1A038]' },
+  { key: 'resepDibuat', label: 'Resep Dibuat', icon: IconBowlSpoon, iconBg: 'bg-[#F88B92]/40', iconColor: 'text-[#DD2E44]' },
+  { key: 'pemeriksaan', label: 'Pemeriksaan', icon: Stethoscope, iconBg: 'bg-[#76C0EC]/40', iconColor: 'text-[#006199]' },
 ];
 
 const ITEMS_PER_PAGE = 5;
@@ -97,7 +178,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 // ================= MAIN PAGE =================
-export default function DashboardKaderPage() {
+function DashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,19 +187,57 @@ export default function DashboardKaderPage() {
   // State pencarian (dikirim ke Topbar)
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Data dari backend
+  const [stats, setStats] = useState<Stats>(EMPTY_STATS);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Ambil data dashboard: tiga request berjalan bersamaan dan independen
+  useEffect(() => {
+    let batal = false;
+    (async () => {
+      const [sum, act, rec] = await Promise.allSettled([
+        dashboardService.summary(),
+        dashboardService.activity(),
+        recipeService.listMine(),
+      ]);
+      if (batal) return;
+
+      const jumlahResep = rec.status === 'fulfilled' ? toArray(rec.value).length : 0;
+
+      setStats(
+        sum.status === 'fulfilled'
+          ? normalizeStats(sum.value, jumlahResep)
+          : { ...EMPTY_STATS, resepDibuat: jumlahResep }
+      );
+      setActivities(act.status === 'fulfilled' ? normalizeActivities(act.value) : []);
+
+      // Tampilkan pesan error kalau data utama gagal dimuat
+      const gagal = [sum, act].find((r) => r.status === 'rejected') as
+        | PromiseRejectedResult
+        | undefined;
+      setError(gagal ? (gagal.reason?.message || 'Gagal memuat data dashboard') : '');
+      setLoading(false);
+    })();
+    return () => {
+      batal = true;
+    };
+  }, []);
+
   // Cek apakah ada aktivitas (data asli, tanpa filter)
-  const hasActivities = ACTIVITIES.length > 0;
+  const hasActivities = activities.length > 0;
 
   // Filter aktivitas berdasarkan pencarian (deskripsi, status, waktu)
   const keyword = searchQuery.trim().toLowerCase();
   const filteredActivities = keyword
-    ? ACTIVITIES.filter(
+    ? activities.filter(
         (a) =>
           a.description.toLowerCase().includes(keyword) ||
           a.status.toLowerCase().includes(keyword) ||
           a.time.toLowerCase().includes(keyword)
       )
-    : ACTIVITIES;
+    : activities;
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / ITEMS_PER_PAGE));
 
@@ -175,9 +294,16 @@ export default function DashboardKaderPage() {
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-6 pt-4 sm:pt-5 lg:pt-6 pb-4 sm:pb-5 lg:pb-6">
 
+          {/* Pesan error koneksi / endpoint */}
+          {error && (
+            <div className="mb-3 rounded-[10px] bg-white border border-[#DD2E44]/40 px-4 py-2 text-[12px] font-medium text-[#DD2E44]">
+              {error}
+            </div>
+          )}
+
           {/* ============ STAT CARDS ============ */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-5">
-            {STATS.map((stat) => {
+            {STAT_CARDS.map((stat) => {
               const Icon = stat.icon;
               return (
                 <div
@@ -192,7 +318,7 @@ export default function DashboardKaderPage() {
                       {stat.label}
                     </p>
                     <p className="text-black font-semibold text-[20px] sm:text-[22px] lg:text-[26px] leading-[24px] sm:leading-[26px] lg:leading-[30px] mt-0.5 lg:mt-1">
-                      {stat.value}
+                      {loading ? '-' : stats[stat.key]}
                     </p>
                   </div>
                 </div>
@@ -203,27 +329,26 @@ export default function DashboardKaderPage() {
           {/* ============ AKTIVITAS TERBARU ============ */}
           <div className="mt-5 sm:mt-7 lg:mt-9 rounded-t-[12px] lg:rounded-t-[14px] overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.15)]">
 
-            {/* Header */}
-            <div className="bg-[#1A7772] h-[44px] sm:h-[52px] lg:h-[60px] px-4 lg:px-6 flex items-center justify-between">
+            {/* Header (sesuai Figma: hanya judul) */}
+            <div className="bg-[#1A7772] h-[44px] sm:h-[52px] lg:h-[60px] px-4 lg:px-6 flex items-center">
               <h2 className="text-white font-bold text-[14px] sm:text-[16px] lg:text-[18px] leading-[18px] lg:leading-[22px]">
                 Aktivitas Terbaru
               </h2>
-              {/* Info halaman — hanya muncul kalau ada data */}
-              {hasActivities && (
-                <span className="text-white/80 text-[10px] sm:text-[11px] lg:text-[12px] font-semibold">
-                  Hal. {currentPage} dari {totalPages} • {filteredActivities.length} data
-                </span>
-              )}
             </div>
 
-            {/* KONDISI 1: EMPTY STATE (Belum Ada Aktivitas) */}
-            {!hasActivities ? (
+            {loading ? (
+              /* KONDISI 0: SEDANG MEMUAT */
+              <div className="bg-white py-10 sm:py-14 lg:py-16 px-4 flex items-center justify-center">
+                <p className="text-black/60 font-medium text-[13px] lg:text-[15px]">
+                  Memuat aktivitas...
+                </p>
+              </div>
+            ) : !hasActivities ? (
+              /* KONDISI 1: EMPTY STATE (Belum Ada Aktivitas) */
               <div className="bg-white py-10 sm:py-14 lg:py-16 px-4 flex flex-col items-center justify-center">
-                {/* Icon bulat peach */}
                 <div className="w-[90px] h-[90px] sm:w-[80px] sm:h-[80px] lg:w-[80px] lg:h-[80px] rounded-full bg-[#FCEBD5] flex items-center justify-center mb-5 sm:mb-6 lg:mb-7">
-                  {/* Icon file + clock */}
                   <svg
-                    className="w-[35px] h-[35px] sm:w-[35px] sm:h-[35px] lg:w-[35px] lg:h-[35px]"
+                    className="w-[35px] h-[35px]"
                     viewBox="0 0 24 24"
                     fill="none"
                     style={{ color: '#D45060' }}
@@ -242,12 +367,10 @@ export default function DashboardKaderPage() {
                   </svg>
                 </div>
 
-                {/* Judul */}
                 <h3 className="text-black font-semibold text-[18px] sm:text-[20px] lg:text-[24px] leading-[24px] sm:leading-[28px] lg:leading-[32px] text-center mb-2 sm:mb-3">
                   Belum Ada Aktivitas
                 </h3>
 
-                {/* Deskripsi */}
                 <p className="text-black/80 font-normal text-[12px] sm:text-[13px] lg:text-[15px] leading-[18px] sm:leading-[20px] lg:leading-[22px] text-center max-w-[320px] sm:max-w-[380px] lg:max-w-[440px]">
                   Aktivitas seperti pemeriksaan balita dan resep MPASI yang Anda buat akan muncul di sini.
                 </p>
@@ -285,7 +408,7 @@ export default function DashboardKaderPage() {
                             isRecipe ? 'bg-[#F88B92]/40' : 'bg-[#76C0EC]/40'
                           }`}>
                             {isRecipe ? (
-                              <IconBowlSpoon className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] lg:w-[22px] lg:h-[22px] text-[#DD2E44]" strokeWidth={2} />
+                              <IconBowlSpoon className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] lg:w-[22px] lg:h-[22px] text-[#DD2E44]" />
                             ) : (
                               <Stethoscope className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] lg:w-[22px] lg:h-[22px] text-[#006199]" strokeWidth={2} />
                             )}
@@ -309,7 +432,7 @@ export default function DashboardKaderPage() {
                   </div>
                 </div>
 
-                {/* KONDISI 4: PAGINATION — hanya muncul kalau ada data */}
+                {/* KONDISI 4: PAGINATION */}
                 <div className="bg-white flex items-center justify-between gap-2 px-4 lg:px-6 pt-2 pb-3 lg:pb-4">
                   <span className="lg:hidden text-[10px] text-[#8F8F8F] font-semibold">
                     Hal. {currentPage} dari {totalPages}
@@ -361,5 +484,14 @@ export default function DashboardKaderPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+// ================= EXPORT: dibungkus penjaga login =================
+export default function DashboardKaderPage() {
+  return (
+    <AuthGuard role="kader">
+      <DashboardContent />
+    </AuthGuard>
   );
 }

@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { CircleUserRound, Bell, MessageCircle, Menu, X } from 'lucide-react';
-import { DUMMY_NOTIFIKASI } from '../app/notifikasi/data';
 import { useProfilFoto } from './profilFoto'; 
+import { api } from '../lib/api';
 
 // ================= TYPES =================
 type TopbarProps = {
@@ -22,19 +22,40 @@ type TopbarProps = {
   onMenuClick?: () => void;
 };
 
-// ================= ICON MAP =================
-type NotifType = 'komentar';
+interface ApiNotification {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  type: string | null;
+  is_read: boolean | number;
+  created_at: string;
+}
 
-const ICON_MAP: Record<NotifType, { Icon: typeof MessageCircle; bg: string; color: string }> = {
+// ================= ICON MAP =================
+const ICON_MAP: Record<string, { Icon: typeof MessageCircle; bg: string; color: string }> = {
   komentar: { Icon: MessageCircle, bg: 'bg-[#F88B92]/40', color: 'text-[#DD2E44]' },
+  default: { Icon: MessageCircle, bg: 'bg-[#F88B92]/40', color: 'text-[#DD2E44]' },
 };
 
 // ================= HELPER =================
-function getNotifHref(n: { type: NotifType; resepId?: number }): string {
-  if (n.type === 'komentar' && n.resepId) {
-    return `/unggah-data/resep?resepId=${n.resepId}`;
+function getNotifHref(n: ApiNotification): string {
+  if (n.type === 'komentar' || n.type === 'resep') {
+    return '/notifikasi';
   }
   return '/notifikasi';
+}
+
+function formatTimeAgo(dateString: string): string {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const now = new Date();
+  const diffHours = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60));
+  if (diffHours < 24) {
+    return `${Math.max(1, diffHours)} jam yang lalu`;
+  }
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} hari`;
 }
 
 // ================= COMPONENT =================
@@ -54,10 +75,26 @@ export default function Topbar({
 }: TopbarProps) {
   const [openNotif, setOpenNotif] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Fetch notifikasi real-time untuk dropdown topbar
+  useEffect(() => {
+    const fetchTopbarNotifs = async () => {
+      try {
+        const result = await api<any>('/notifications');
+        if (result.success) {
+          setNotifications(result.data || []);
+        }
+      } catch (error) {
+        console.error('Gagal memuat notifikasi topbar:', error);
+      }
+    };
+    fetchTopbarNotifs();
+  }, []);
 
   // Tutup notif dropdown saat klik di luar
   useEffect(() => {
@@ -78,7 +115,6 @@ export default function Topbar({
         mobileSearchWrapperRef.current &&
         !mobileSearchWrapperRef.current.contains(e.target as Node)
       ) {
-        // Klik di luar search → tutup
         setMobileSearchOpen(false);
         onSearchChange?.('');
       }
@@ -92,25 +128,22 @@ export default function Topbar({
     };
   }, [mobileSearchOpen, onSearchChange]);
 
-  // Auto-focus input saat mobile search terbuka
   useEffect(() => {
     if (mobileSearchOpen) {
       setTimeout(() => mobileSearchRef.current?.focus(), 100);
     }
   }, [mobileSearchOpen]);
 
-  // Handler buka mobile search
   const handleOpenMobileSearch = () => {
     setMobileSearchOpen(true);
     setOpenNotif(false);
   };
 
-  const computedUnread = DUMMY_NOTIFIKASI.filter((n) => !n.dibaca).length;
+  const computedUnread = notifications.filter((n) => !n.is_read).length;
   const finalCount = notifCount ?? computedUnread;
   const fotoProfil = useProfilFoto();
-  // Profil jadi sumber utama → kalau profil kosong, fallback ke avatarSrc (kalau ada), kalau dua-duanya kosong → icon default
   const finalAvatar = fotoProfil || avatarSrc || '';
-  const previewNotif = DUMMY_NOTIFIKASI.slice(0, 4);
+  const previewNotif = notifications.slice(0, 4);
 
   return (
     <header
@@ -123,7 +156,6 @@ export default function Topbar({
           ref={mobileSearchWrapperRef}
           className="flex items-center gap-2 w-full md:hidden"
         >
-          {/* Input search */}
           <input
             ref={mobileSearchRef}
             type="text"
@@ -133,7 +165,6 @@ export default function Topbar({
             className="flex-1 h-[38px] px-4 rounded-full bg-white border border-black/40 text-[13px] text-gray-700 placeholder-[#8F8F8F]/80 focus:outline-none focus:border-[#D45060] transition-colors"
           />
 
-          {/* Tombol clear (muncul kalau ada teks) */}
           {searchValue && searchValue.length > 0 && (
             <button
               type="button"
@@ -171,7 +202,6 @@ export default function Topbar({
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {showSearch && !hideSearch && (
               <>
-                {/* Desktop: search full input */}
                 <div className="relative hidden md:block">
                   <input
                     type="text"
@@ -189,7 +219,6 @@ export default function Topbar({
                   </svg>
                 </div>
 
-                {/* Mobile: icon search → klik untuk expand input */}
                 <button
                   type="button"
                   onClick={handleOpenMobileSearch}
@@ -234,15 +263,17 @@ export default function Topbar({
                         </div>
                       ) : (
                         previewNotif.map((n) => {
-                          const cfg = ICON_MAP[n.type];
+                          const cfg = ICON_MAP[n.type || 'default'] || ICON_MAP.default;
                           const Icon = cfg.Icon;
+                          const isRead = Boolean(n.is_read);
+
                           return (
                             <Link
                               key={n.id}
                               href={getNotifHref(n)}
                               onClick={() => setOpenNotif(false)}
                               className={`flex items-start gap-2.5 px-4 py-2.5 border-b border-[#F0F0F0] last:border-b-0 transition-colors cursor-pointer ${
-                                !n.dibaca ? 'bg-[#FEF6F7] hover:bg-[#FCEBED]' : 'hover:bg-[#F7F8F0]'
+                                !isRead ? 'bg-[#FEF6F7] hover:bg-[#FCEBED]' : 'hover:bg-[#F7F8F0]'
                               }`}
                             >
                               <div className={`w-[30px] h-[30px] rounded-[8px] flex items-center justify-center shrink-0 ${cfg.bg}`}>
@@ -250,18 +281,14 @@ export default function Topbar({
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-[12px] leading-[16px]">
-                                  <span className="font-bold text-black">{n.dariNama}</span>
-                                  <span className="text-black/70"> {n.deskripsi}</span>
-                                  {n.targetNama && (
-                                    <>
-                                      <span className="text-black/70"> </span>
-                                      <span className="font-semibold text-[#D45060]">&quot;{n.targetNama}&quot;</span>
-                                    </>
-                                  )}
+                                  <span className="font-bold text-black">{n.title}</span>
                                 </p>
-                                <p className="mt-0.5 text-[10px] text-[#8F8F8F]">{n.timestamp}</p>
+                                <p className="text-[11px] text-black/70 mt-0.5 line-clamp-2">
+                                  {n.message}
+                                </p>
+                                <p className="mt-0.5 text-[10px] text-[#8F8F8F]">{formatTimeAgo(n.created_at)}</p>
                               </div>
-                              {!n.dibaca && (
+                              {!isRead && (
                                 <span className="shrink-0 mt-2.5 w-1.5 h-1.5 rounded-full bg-[#D45060]" />
                               )}
                             </Link>

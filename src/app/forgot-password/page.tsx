@@ -7,27 +7,57 @@ import PageTransition from '../../components/PageTransition';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleKirimKode = () => {
+  const handleKirimKode = async () => {
+    setErrorMessage('');
+    
     if (!email || !email.includes('@')) {
-      alert('Masukkan email yang valid terlebih dahulu.');
+      setErrorMessage('Masukkan email yang valid terlebih dahulu.');
       return;
     }
 
-    console.log('Kirim kode verifikasi ke:', email);
-    window.location.href = `/verify-otp?email=${encodeURIComponent(email)}`;
+    setIsLoading(true);
+
+    try {
+      // Sesuaikan URL base backend Anda (misal: http://localhost:5000/api/auth/forgot-password)
+      // Atau gunakan environment variable: process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Menangani pesan error dari backend (termasuk cooldown 429 atau 404 email tidak terdaftar)
+        throw new Error(data.message || 'Terjadi kesalahan pada server.');
+      }
+
+      // Jika berhasil, arahkan ke halaman verifikasi OTP dengan membawa parameter email
+      console.log('Kode verifikasi berhasil dikirim ke:', email);
+      window.location.href = `/verify-otp?email=${encodeURIComponent(email)}&purpose=reset_password`;
+      
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Gagal terhubung ke server.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <AuthLayout>
-      {/* Ukuran card disamakan dengan Login Kader */}
       <div
         className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
         style={{
           boxShadow: '8px 10px 3.5px #D45060',
         }}
       >
-        {/* Header Title SiMPASI — sama seperti Login Kader */}
+        {/* Header Title SiMPASI */}
         <div className="mb-[36px]">
           <h1 className="text-center text-[25px] font-bold text-[#D45060] leading-[30px]">
             SiMPASI
@@ -48,6 +78,13 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
+        {/* Pesan Error jika ada */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-[12px] rounded-md text-center">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Form */}
         <div>
           {/* Input Email */}
@@ -60,10 +97,11 @@ export default function ForgotPasswordPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleKirimKode();
+                if (e.key === 'Enter' && !isLoading) handleKirimKode();
               }}
               placeholder="nama@gmail.com"
-              className="w-full h-[40px] pl-[10px] pr-4 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors"
+              disabled={isLoading}
+              className="w-full h-[40px] pl-[10px] pr-4 rounded-[5px] border border-[#AAA6A6]/50 bg-white text-gray-800 placeholder-[#AAA6A6] text-[12px] focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition-colors disabled:opacity-50"
             />
           </div>
 
@@ -72,9 +110,10 @@ export default function ForgotPasswordPage() {
             <button
               type="button"
               onClick={handleKirimKode}
-              className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm cursor-pointer"
+              disabled={isLoading}
+              className="w-full max-w-[270px] h-[50px] bg-[#D45060] hover:bg-[#c44454] text-white text-[20px] font-bold rounded-[10px] transition-all active:scale-[0.98] flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50"
             >
-              Kirim Kode Verifikasi
+              {isLoading ? 'Mengirim...' : 'Kirim Kode Verifikasi'}
             </button>
           </div>
 

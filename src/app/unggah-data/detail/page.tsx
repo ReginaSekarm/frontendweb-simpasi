@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -13,8 +13,6 @@ import Topbar from '../../../components/Topbar';
 
 import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../types';
 import {
-  BALITA_DATA,
-  RIWAYAT_MAP,
   EMPTY_PEMERIKSAAN,
   KONDISI_STYLE,
   KONDISI_DOT,
@@ -23,18 +21,83 @@ import {
 import Toast from '../components/Toast';
 import PemeriksaanModal from '../components/PemeriksaanModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
+import { api } from '../../../lib/api';
+
+// ================= HELPERS =================
+const BULAN_MAP: Record<string, string> = {
+  Januari: '01', Februari: '02', Maret: '03', April: '04',
+  Mei: '05', Juni: '06', Juli: '07', Agustus: '08',
+  September: '09', Oktober: '10', November: '11', Desember: '12',
+};
+const BULAN_ARR = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+];
+
+// "11 November 2026" -> "2026-11-11"
+const toSQLDate = (str: string): string => {
+  const today = new Date().toISOString().split('T')[0];
+  if (!str) return today;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const parts = str.trim().split(' ');
+  if (parts.length === 3 && BULAN_MAP[parts[1]]) {
+    return `${parts[2]}-${BULAN_MAP[parts[1]]}-${parts[0].padStart(2, '0')}`;
+  }
+  return today;
+};
+
+// "2026-11-11" -> "11 November 2026"
+const fromSQLDate = (iso: string): string => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${parseInt(d, 10)} ${BULAN_ARR[parseInt(m, 10) - 1] || ''} ${y}`;
+};
+
+// Terima "3,4" maupun "3.4"
+const toNum = (v: string): number => {
+  const n = parseFloat(String(v).replace(',', '.'));
+  return Number.isNaN(n) ? 0 : n;
+};
+const toNumOrNull = (v: string): number | null => {
+  if (v === undefined || v === null || String(v).trim() === '') return null;
+  return toNum(v);
+};
+
+// 3.4 -> "3,4"
+const fmtNum = (v: unknown): string => {
+  if (v === null || v === undefined || v === '') return '';
+  return String(Number(v)).replace('.', ',');
+};
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '');
+
+// Baris dari DB -> bentuk yang dipakai UI
+const mapRow = (row: any): RiwayatPemeriksaan => ({
+  id: Number(row.id),
+  tanggal: fromSQLDate(row.checkup_date_str || ''),
+  bb: fmtNum(row.weight_kg),
+  tb: fmtNum(row.height_cm),
+  lk: fmtNum(row.head_circumference_cm),
+  lila: fmtNum(row.lila_cm),
+  kondisi: (capitalize(row.condition_status) || 'Belum Diperiksa') as RiwayatPemeriksaan['kondisi'],
+  catatan: row.kader_notes && String(row.kader_notes).trim() !== '' ? row.kader_notes : '-',
+  bahanMakanan: row.recommended_food
+    ? String(row.recommended_food).split(',').map((s: string) => s.trim()).filter(Boolean)
+    : [],
+  canEdit: Boolean(Number(row.can_edit)),
+});
 
 function DetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const balitaIdParam = searchParams.get('balitaId');
 
-  const balita = BALITA_DATA.find((b) => b.id === Number(balitaIdParam)) || BALITA_DATA[0];
-   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [balita, setBalita] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>(
-    RIWAYAT_MAP[balita.id] || []
-  );
+  const [riwayat, setRiwayat] = useState<RiwayatPemeriksaan[]>([]);
 
   const [periksaOpen, setPeriksaOpen] = useState(false);
   const [periksaForm, setPeriksaForm] = useState<PemeriksaanForm>(EMPTY_PEMERIKSAAN);
@@ -44,6 +107,61 @@ function DetailContent() {
   const [toast, setToast] = useState<ToastState>(null);
   const [deleteTarget, setDeleteTarget] = useState<RiwayatPemeriksaan | null>(null);
 
+  // Ambil riwayat pemeriksaan dari database
+  const fetchRiwayat = useCallback(async () => {
+    if (!balitaIdParam) return;
+    try {
+      const res = await api<any>(`/babies/${balitaIdParam}/checkups`);
+      if (res.success && Array.isArray(res.data)) {
+        setRiwayat(res.data.map(mapRow));
+      }
+    } catch (err) {
+      console.error('Gagal memuat riwayat pemeriksaan:', err);
+    }
+  }, [balitaIdParam]);
+
+  // Ambil detail balita dari backend berdasarkan balitaId yang diklik
+  useEffect(() => {
+    const fetchBalitaDetail = async () => {
+      if (!balitaIdParam) return;
+      try {
+        setLoading(true);
+        const res = await api<any>('/babies/all');
+        if (res.success && res.data) {
+          const found = res.data.find((b: any) => Number(b.id) === Number(balitaIdParam));
+          if (found) {
+            let calculatedAge = found.age_months;
+            if (!calculatedAge && found.birth_date) {
+              const birth = new Date(found.birth_date);
+              const now = new Date();
+              const diffMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+              calculatedAge = Math.max(0, diffMonths);
+            }
+
+            setBalita({
+              id: found.id,
+              nama: found.full_name || found.name || found.nama || '',
+              jenisKelamin: found.gender === 'L' || found.gender === 'Laki-laki' ? 'Laki - laki' : 'Perempuan',
+              usia: `${calculatedAge || 0} Bulan`,
+              tempatLahir: found.birth_place || '',
+              tanggalLahir: found.birth_date || '',
+              namaOrtu: found.parent_name || '',
+              email: found.parent_email || '',
+              kondisi: found.condition_note || found.status || 'Normal',
+            });
+          }
+        }
+        await fetchRiwayat();
+      } catch (err) {
+        console.error('Gagal memuat detail balita:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBalitaDetail();
+  }, [balitaIdParam, fetchRiwayat]);
+
   useEffect(() => {
     if (!toast?.visible) return;
     const t = setTimeout(() => setToast(null), 4000);
@@ -51,6 +169,7 @@ function DetailContent() {
   }, [toast]);
 
   const handleOpenPemeriksaan = () => {
+    if (!balita) return;
     setPeriksaMode('add');
     setEditTargetId(null);
     setPeriksaForm({
@@ -69,6 +188,7 @@ function DetailContent() {
   };
 
   const handleEditRiwayat = (item: RiwayatPemeriksaan) => {
+    if (!balita) return;
     setPeriksaMode('edit');
     setEditTargetId(item.id);
     setPeriksaForm({
@@ -96,16 +216,31 @@ function DetailContent() {
     setDeleteTarget(item);
   };
 
-  const handleConfirmDelete = () => {
+  const deleteRiwayat = async (id: number) => {
+    try {
+      await api(`/checkups/${id}`, { method: 'DELETE' });
+      await fetchRiwayat();
+      setToast({
+        visible: true,
+        type: 'delete',
+        title: 'Berhasil Dihapus',
+        message: 'Data pemeriksaan telah berhasil dihapus dari sistem.',
+      });
+    } catch (err: any) {
+      setToast({
+        visible: true,
+        type: 'error',
+        title: 'Gagal Menghapus',
+        message: err?.message || 'Terjadi kesalahan pada server saat menghapus.',
+      });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    setRiwayat((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+    const id = deleteTarget.id;
     setDeleteTarget(null);
-    setToast({
-      visible: true,
-      type: 'delete',
-      title: 'Berhasil Dihapus',
-      message: 'Data pemeriksaan telah berhasil dihapus dari sistem.',
-    });
+    await deleteRiwayat(id);
   };
 
   const handleChangePeriksa = (field: keyof PemeriksaanForm, value: string | string[]) => {
@@ -136,78 +271,93 @@ function DetailContent() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSave = () => {
+  // Simpan ke database (tambah / edit)
+  const handleSave = async () => {
+    if (saving) return;
+
     if (!validateForm()) {
       setToast({ visible: true, type: 'error', title: 'Data Belum Lengkap', message: 'Mohon lengkapi semua kolom yang wajib diisi sebelum menyimpan' });
       return;
     }
 
-    if (periksaMode === 'add') {
-      const newItem: RiwayatPemeriksaan = {
-        id: Date.now(),
-        tanggal: periksaForm.tanggalPemeriksaan,
-        bb: periksaForm.bb,
-        tb: periksaForm.tb,
-        lk: periksaForm.lk,
-        lila: periksaForm.lila,
-        kondisi: periksaForm.kondisi === '' ? 'Belum Diperiksa' : periksaForm.kondisi,
-        catatan: periksaForm.catatan.trim() === '' ? '-' : periksaForm.catatan,
-        bahanMakanan: periksaForm.bahanMakanan,
-        canEdit: true,
-      };
-
-      setRiwayat((prev) => [newItem, ...prev]);
-
-      setToast({
-        visible: true,
-        type: 'success',
-        title: 'Berhasil Disimpan',
-        message: 'Data pemeriksaan telah berhasil ditambahkan',
-      });
-    } else {
-      if (editTargetId !== null) {
-        setRiwayat((prev) =>
-          prev.map((r) =>
-            r.id === editTargetId
-              ? {
-                  ...r,
-                  tanggal: periksaForm.tanggalPemeriksaan,
-                  bb: periksaForm.bb,
-                  tb: periksaForm.tb,
-                  lk: periksaForm.lk,
-                  lila: periksaForm.lila,
-                  kondisi: periksaForm.kondisi === '' ? 'Belum Diperiksa' : periksaForm.kondisi,
-                  catatan: periksaForm.catatan.trim() === '' ? '-' : periksaForm.catatan,
-                  bahanMakanan: periksaForm.bahanMakanan,
-                  diedit: `Diedit ${new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
-                }
-              : r
-          )
-        );
-      }
-
-      setToast({
-        visible: true,
-        type: 'success',
-        title: 'Berhasil Disimpan',
-        message: 'Data pemeriksaan telah berhasil diperbarui dan disimpan',
-      });
+    const babyId = Number(balita?.id);
+    if (!Number.isInteger(babyId) || babyId <= 0) {
+      setToast({ visible: true, type: 'error', title: 'Gagal', message: 'Data balita tidak ditemukan.' });
+      return;
     }
 
-    setPeriksaOpen(false);
-    setEditTargetId(null);
-  };
+    const matchAge = String(periksaForm.usia).match(/\d+/);
+    const babyAgeMonths = matchAge ? parseInt(matchAge[0], 10) : 0;
 
-  const handleDeleteFromModal = () => {
-    if (confirm('Yakin ingin menghapus data pemeriksaan ini?')) {
-      if (editTargetId !== null) {
-        setRiwayat((prev) => prev.filter((r) => r.id !== editTargetId));
+    const kondLower = String(periksaForm.kondisi).toLowerCase();
+    let conditionStatus: 'normal' | 'berisiko' | 'stunting' = 'normal';
+    if (kondLower.includes('berisiko')) conditionStatus = 'berisiko';
+    else if (kondLower.includes('stunting')) conditionStatus = 'stunting';
+
+    const payload = {
+      babyId,
+      babyAgeMonths,
+      checkupDate: toSQLDate(periksaForm.tanggalPemeriksaan),
+      weightKg: toNum(periksaForm.bb),
+      heightCm: toNum(periksaForm.tb),
+      headCircumferenceCm: toNumOrNull(periksaForm.lk),
+      lilaCm: toNumOrNull(periksaForm.lila),
+      kaderNotes: periksaForm.catatan || '',
+      recommendedFood: Array.isArray(periksaForm.bahanMakanan) ? periksaForm.bahanMakanan.join(', ') : '',
+      conditionStatus,
+    };
+
+    setSaving(true);
+    try {
+      if (periksaMode === 'add') {
+        await api('/checkups', { method: 'POST', body: payload });
+        setToast({
+          visible: true,
+          type: 'success',
+          title: 'Berhasil Disimpan',
+          message: 'Data pemeriksaan telah berhasil ditambahkan',
+        });
+      } else if (editTargetId !== null) {
+        await api(`/checkups/${editTargetId}`, { method: 'PUT', body: payload });
+        setToast({
+          visible: true,
+          type: 'success',
+          title: 'Berhasil Disimpan',
+          message: 'Data pemeriksaan telah berhasil diperbarui dan disimpan',
+        });
       }
+
       setPeriksaOpen(false);
       setEditTargetId(null);
-      setToast({ visible: true, type: 'delete', title: 'Berhasil Dihapus', message: 'Data pemeriksaan telah berhasil dihapus dari sistem.' });
+      await fetchRiwayat(); // ambil ulang dari DB supaya yang tampil = yang tersimpan
+    } catch (err: any) {
+      setToast({
+        visible: true,
+        type: 'error',
+        title: 'Gagal Menyimpan',
+        message: err?.message || 'Terjadi kesalahan pada server saat menyimpan.',
+      });
+    } finally {
+      setSaving(false);
     }
   };
+
+  const handleDeleteFromModal = async () => {
+    if (confirm('Yakin ingin menghapus data pemeriksaan ini?')) {
+      const id = editTargetId;
+      setPeriksaOpen(false);
+      setEditTargetId(null);
+      if (id !== null) await deleteRiwayat(id);
+    }
+  };
+
+  if (loading || !balita) {
+    return (
+      <div className="h-screen w-full bg-[#B3EAE8] flex items-center justify-center">
+        <p className="text-black font-semibold text-[16px]">Memuat data balita...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
@@ -224,12 +374,9 @@ function DetailContent() {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        {/* Padding area konten diperkecil */}
         <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5">
-          {/* Container utama diperkecil */}
           <div className="bg-white rounded-[7px] px-6 pt-5 pb-6">
-            
-            {/* Tombol Kembali diperkecil */}
+
             <button
               type="button"
               onClick={() => router.push('/unggah-data')}
@@ -243,9 +390,7 @@ function DetailContent() {
               </span>
             </button>
 
-            {/* Card Balita diperkecil */}
             <div className="flex items-center gap-3.5 mb-6">
-              {/* Avatar diperkecil */}
               <div className="w-[44px] h-[44px] rounded-full bg-[#FCEBD5] flex items-center justify-center shrink-0">
                 <span className="text-[#D45060] font-bold text-[18px] leading-[22px]">
                   {balita.nama.charAt(0).toUpperCase()}
@@ -259,7 +404,6 @@ function DetailContent() {
                   {balita.usia}
                 </p>
               </div>
-              {/* Tombol Pemeriksaan diperkecil */}
               <button
                 type="button"
                 onClick={handleOpenPemeriksaan}
@@ -270,10 +414,8 @@ function DetailContent() {
               </button>
             </div>
 
-            {/* Heading Riwayat diperkecil */}
             <h3 className="text-black/70 font-bold text-[14px] leading-[18px] mb-2.5">Riwayat Pemeriksaan</h3>
 
-            {/* Banner Info diperkecil */}
             <div className="w-full bg-[#FFC2B4]/50 rounded-[8px] px-3.5 py-2.5 flex items-center gap-2.5 mb-5">
               <AlertCircle className="w-[16px] h-[16px] text-[#BE6D15] shrink-0" strokeWidth={2} />
               <p className="text-[#BE6D15]/90 font-medium text-[12px] leading-[15px]">
@@ -281,7 +423,6 @@ function DetailContent() {
               </p>
             </div>
 
-            {/* Timeline Riwayat */}
             <div className="relative">
               {riwayat.length === 0 ? (
                 <div className="h-[100px] flex items-center justify-center text-[#797777] font-medium text-[13px]">
@@ -290,9 +431,7 @@ function DetailContent() {
               ) : (
                 riwayat.map((item) => {
                   return (
-                    // Gap dan padding timeline diperkecil
                     <div key={item.id} className="relative flex gap-4 pb-5">
-                      {/* Dot dan line timeline diperkecil */}
                       <div className="relative flex flex-col items-center shrink-0 w-[12px]">
                         <div className={`w-[12px] h-[12px] rounded-full ${KONDISI_DOT[item.kondisi]} z-10 relative`} />
                         <div
@@ -304,23 +443,18 @@ function DetailContent() {
 
                       <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          {/* Tanggal diperkecil */}
                           <p className="text-[#8F8F8F] font-bold text-[10px] leading-[12px] mb-1">{item.tanggal}</p>
-                          {/* Detail pengukuran diperkecil */}
                           <p className="text-black/80 font-semibold text-[12px] leading-[14px] mb-2">
                             BB {item.bb} kg<span className="mx-[5px]">•</span>TB {item.tb} cm<span className="mx-[5px]">•</span>LK {item.lk} cm<span className="mx-[5px]">•</span>LiLA {item.lila} cm
                           </p>
-                          {/* Badge Kondisi diperkecil */}
                           <div className="mb-2">
                             <span className={`inline-flex min-w-[68px] h-[22px] px-2 items-center justify-center rounded-[5px] font-bold text-[10px] leading-[12px] ${KONDISI_STYLE[item.kondisi]}`}>
                               {item.kondisi}
                             </span>
                           </div>
-                          {/* Catatan diperkecil */}
                           <p className="text-[#8F8F8F] font-bold text-[12px] leading-[14px] mb-2">
                             Catatan: {item.catatan}
                           </p>
-                          {/* Chip bahan makanan diperkecil */}
                           {item.bahanMakanan.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-2">
                               {item.bahanMakanan.map((bahan) => (
@@ -331,13 +465,11 @@ function DetailContent() {
                               ))}
                             </div>
                           )}
-                          {/* Info diedit diperkecil */}
                           {item.diedit && (
                             <p className="text-[#AAA6A6] font-semibold text-[10px] leading-[12px]">{item.diedit}</p>
                           )}
                         </div>
 
-                        {/* Tombol aksi diperkecil */}
                         <div className="flex items-center gap-2.5 shrink-0">
                           <button
                             type="button"

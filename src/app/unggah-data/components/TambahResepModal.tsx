@@ -77,21 +77,24 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
   const inputErr = (field: string) => (errors[field] ? 'border-[#D45060] bg-[#F88B92]/20' : '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       alert('Ukuran file maks 5MB');
+      input.value = '';
       return;
     }
     onChange('image', file);
-    const url = URL.createObjectURL(file);
-    onChange('imagePreview', url);
+    onChange('imagePreview', URL.createObjectURL(file));
+    // reset supaya file yang sama bisa dipilih ulang
+    input.value = '';
   };
 
-  // Klik Batal → tampilkan konfirmasi dulu
+  // Klik Batal -> tampilkan konfirmasi dulu
   const handleBatalClick = () => setShowBatalConfirm(true);
 
-  // Konfirmasi "Ya, Batalkan" → tutup modal utama
+  // Konfirmasi "Ya, Batalkan" -> tutup modal utama
   const handleKonfirmasiBatal = () => {
     setShowBatalConfirm(false);
     onClose();
@@ -108,12 +111,16 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
             <h1 className="text-[18px] font-semibold text-black leading-[22px]">Tambah Resep MPASI</h1>
             <p className="mt-2 text-[13px] font-normal text-black leading-[16px]">Lengkapi data resep di bawah ini!</p>
 
-            <div className="flex justify-center mt-6 mb-6">
+            <div className="flex flex-col items-center mt-6 mb-6">
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" onChange={handleFileChange} className="hidden" />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-[150px] h-[150px] rounded-[8px] bg-[#D9D9D9]/20 border border-dashed border-[#8F8F8F] flex flex-col items-center justify-center cursor-pointer hover:bg-[#D9D9D9]/30 transition-colors overflow-hidden"
+                className={`w-[150px] h-[150px] rounded-[8px] border border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden ${
+                  errors.image
+                    ? 'border-[#D45060] bg-[#F88B92]/20 hover:bg-[#F88B92]/30'
+                    : 'border-[#8F8F8F] bg-[#D9D9D9]/20 hover:bg-[#D9D9D9]/30'
+                }`}
               >
                 {data.imagePreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -126,6 +133,19 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
                   </>
                 )}
               </button>
+
+              {errors.image && (
+                <p className="mt-2 text-[12px] font-semibold text-[#D45060]">Foto menu wajib diunggah</p>
+              )}
+              {data.imagePreview && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-2 text-[11px] font-semibold text-[#8F8F8F] hover:text-[#D45060] transition-colors cursor-pointer"
+                >
+                  Ganti foto
+                </button>
+              )}
             </div>
 
             <div className="mb-4">

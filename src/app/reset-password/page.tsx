@@ -4,11 +4,25 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
+import { api } from '../../lib/api';
+
+// Aturan sama dengan backend: min 8 karakter, 1 huruf besar, 1 angka
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+const PASSWORD_MESSAGE = 'Password minimal 8 karakter, mengandung 1 huruf besar dan 1 angka.';
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const email = searchParams.get('email') || '';
+  // Kode OTP 4 digit dari halaman verifikasi. Dibaca dari beberapa kemungkinan nama parameter.
+  const otpCode = (
+    searchParams.get('otpCode') ||
+    searchParams.get('otp') ||
+    searchParams.get('code') ||
+    searchParams.get('token') ||
+    ''
+  ).trim();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,6 +30,7 @@ function ResetPasswordContent() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     setShowToast(true);
@@ -23,26 +38,45 @@ function ResetPasswordContent() {
     return () => clearTimeout(t);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
 
-    if (password.length < 6) {
-      alert('Password minimal 6 karakter.');
+    if (!email || !otpCode) {
+      setErrorMessage('Data verifikasi tidak lengkap. Ulangi proses lupa password dari awal.');
+      return;
+    }
+    if (!PASSWORD_REGEX.test(password)) {
+      setErrorMessage(PASSWORD_MESSAGE);
       return;
     }
     if (password !== confirmPassword) {
-      alert('Konfirmasi password tidak cocok.');
+      setErrorMessage('Konfirmasi password tidak cocok.');
       return;
     }
 
     setIsLoading(true);
-    console.log('Reset password untuk:', email, '→ password baru:', password);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // auth: false -> tidak mengirim token login dan tidak memicu redirect 401
+      await api('/auth/reset-password', {
+        method: 'POST',
+        auth: false,
+        body: {
+          email,
+          otpCode,
+          newPassword: password,
+          confirmPassword,
+        },
+      });
+
       alert('Password berhasil diperbarui. Silakan login kembali.');
       router.push('/login');
-    }, 800);
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'Gagal memperbarui password. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,6 +110,12 @@ function ResetPasswordContent() {
             </p>
           </div>
 
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-[13px] rounded-lg text-center">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit}>
             {/* Input Password Baru */}
@@ -104,6 +144,9 @@ function ResetPasswordContent() {
                   )}
                 </button>
               </div>
+              <p className="mt-[4px] text-[10.5px] text-[#797777] leading-[13px]">
+                Minimal 8 karakter, mengandung 1 huruf besar dan 1 angka.
+              </p>
             </div>
 
             {/* Input Konfirmasi Password */}
@@ -150,14 +193,12 @@ function ResetPasswordContent() {
 
       {/* ============ TOAST: VERIFIKASI EMAIL BERHASIL ============ */}
       {showToast && (
-        // Toast diperkecil
         <div
           role="status"
           aria-live="polite"
           className="fixed top-[24px] right-[24px] z-[9999]"
           style={{ width: '380px', height: '100px' }}
         >
-          {/* Background hijau (aksen kiri) */}
           <div
             className="absolute inset-0"
             style={{
@@ -166,7 +207,6 @@ function ResetPasswordContent() {
             }}
           />
 
-          {/* Panel putih */}
           <div
             className="absolute"
             style={{
@@ -179,7 +219,6 @@ function ResetPasswordContent() {
             }}
           />
 
-          {/* Icon centang */}
           <svg
             className="absolute"
             style={{
@@ -203,7 +242,6 @@ function ResetPasswordContent() {
             />
           </svg>
 
-          {/* Judul */}
           <h3
             className="absolute font-bold text-black"
             style={{
@@ -216,7 +254,6 @@ function ResetPasswordContent() {
             Verifikasi email berhasil
           </h3>
 
-          {/* Deskripsi */}
           <p
             className="absolute"
             style={{

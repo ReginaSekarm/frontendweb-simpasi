@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { clearToken } from '../lib/auth';
+import { api } from '../lib/api';
 import KonfirmasiKeluarModal from './KonfirmasiKeluarModal';
 
 // ================= ICON CUSTOM =================
@@ -71,10 +74,23 @@ export default function Sidebar({
   isOpen = true,
   onClose,
 }: SidebarProps) {
+  const router = useRouter();
   const [showKeluarModal, setShowKeluarModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Logout: kirim ke backend dulu (token dimasukkan blacklist), baru hapus token lokal
+  const handleLogout = async () => {
+    try {
+      await api('/auth/logout', { method: 'POST' });
+    } catch {
+      /* tetap lanjut keluar walau request gagal */
+    }
+    clearToken();
+    setShowKeluarModal(false);
+    router.replace('/login');
+  };
 
   return (
     <>
@@ -134,7 +150,7 @@ export default function Sidebar({
       {mounted && showKeluarModal && createPortal(
         <KonfirmasiKeluarModal
           onTetap={() => setShowKeluarModal(false)}
-          onKeluar={() => { setShowKeluarModal(false); window.location.href = '/login'; }}
+          onKeluar={handleLogout}
         />,
         document.body
       )}

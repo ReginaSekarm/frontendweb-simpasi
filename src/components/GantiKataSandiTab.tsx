@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Eye, EyeOff, CheckCircle2, Circle, X } from 'lucide-react';
+import { api } from '../lib/api';
 
 // ================= TYPES =================
 type Rule = {
@@ -19,6 +20,7 @@ type ToastState = {
   message: string;
 } | null;
 
+// Aturan wajib sama dengan backend: min 8 karakter, 1 huruf besar, 1 angka
 const RULES: Rule[] = [
   { key: 'len', label: 'Minimal 8 karakter', required: true, test: (v) => v.length >= 8 },
   { key: 'upper', label: 'Mengandung huruf besar', required: true, test: (v) => /[A-Z]/.test(v) },
@@ -94,7 +96,6 @@ function Toast({
         </div>
 
         <div className="flex-1 min-w-0 pt-1">
-          {/* Font judul dan deskripsi diperkecil */}
           <h3 className="text-black font-bold text-[14px] leading-[17px]">{title}</h3>
           <p className="mt-1 text-black/70 text-[12px] leading-[15px]">{message}</p>
         </div>
@@ -142,7 +143,9 @@ export default function GantiKataSandiTab() {
     setToast({ type, title, message });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (loading) return;
+
     if (!oldPw.trim()) {
       showToast('error', 'Gagal Membuat Kata Sandi!', 'Kata sandi lama wajib diisi terlebih dahulu.');
       return;
@@ -167,10 +170,27 @@ export default function GantiKataSandiTab() {
       return;
     }
 
+    if (newPw === oldPw) {
+      showToast(
+        'error',
+        'Gagal Membuat Kata Sandi!',
+        'Kata sandi baru tidak boleh sama dengan kata sandi lama.'
+      );
+      return;
+    }
+
     setLoading(true);
-    // TODO: hubungkan ke API ganti kata sandi
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // PUT /api/kader/change-password (butuh token login, dipasang otomatis oleh api())
+      await api('/kader/change-password', {
+        method: 'PUT',
+        body: {
+          oldPassword: oldPw,
+          newPassword: newPw,
+          confirmPassword: confirmPw,
+        },
+      });
+
       showToast(
         'success',
         'Kata Sandi Berhasil Dibuat!',
@@ -179,10 +199,17 @@ export default function GantiKataSandiTab() {
       setOldPw('');
       setNewPw('');
       setConfirmPw('');
-    }, 800);
+    } catch (err: any) {
+      showToast(
+        'error',
+        'Gagal Membuat Kata Sandi!',
+        err?.message || 'Terjadi kesalahan saat mengubah kata sandi. Silakan coba lagi.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Ukuran input, label, dan tombol mata diperkecil
   const inputCls =
     'w-full h-[38px] pl-3.5 pr-11 rounded-[10px] bg-[#D9D9D9]/50 text-[13px] text-black placeholder-[#8F8F8F] focus:outline-none focus:ring-2 focus:ring-[#D45060]/40 transition';
   const labelCls = 'block text-[13px] font-bold text-black mb-1.5';
@@ -191,7 +218,6 @@ export default function GantiKataSandiTab() {
 
   return (
     <>
-      {/* Container diperkecil dari 638px menjadi 460px */}
       <div className="bg-white border border-[#AAA6A6]/70 rounded-[14px] w-full max-w-[460px] px-8 pt-6 pb-6">
 
         {/* Kata Sandi Lama */}
@@ -203,6 +229,7 @@ export default function GantiKataSandiTab() {
               value={oldPw}
               onChange={(e) => setOldPw(e.target.value)}
               placeholder="••••••••"
+              autoComplete="current-password"
               className={inputCls}
             />
             <button type="button" onClick={() => setShowOld(!showOld)} className={eyeBtn} aria-label="Toggle">
@@ -220,6 +247,7 @@ export default function GantiKataSandiTab() {
               value={newPw}
               onChange={(e) => setNewPw(e.target.value)}
               placeholder="••••••••"
+              autoComplete="new-password"
               className={inputCls}
             />
             <button type="button" onClick={() => setShowNew(!showNew)} className={eyeBtn} aria-label="Toggle">
@@ -237,6 +265,7 @@ export default function GantiKataSandiTab() {
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
               placeholder="••••••••"
+              autoComplete="new-password"
               className={inputCls}
             />
             <button type="button" onClick={() => setShowConfirm(!showConfirm)} className={eyeBtn} aria-label="Toggle">
@@ -252,7 +281,6 @@ export default function GantiKataSandiTab() {
         </div>
 
         {/* ============ CHECKLIST REALTIME ============ */}
-        {/* Ukuran icon dan font diperkecil */}
         <ul className="space-y-1.5 mt-3 mb-6">
           {ruleStatus.map((r) => (
             <li key={r.key} className="flex items-center gap-2">
@@ -270,7 +298,6 @@ export default function GantiKataSandiTab() {
 
         {/* ============ TOMBOL ============ */}
         <div className="flex justify-center">
-          {/* Tombol diperkecil */}
           <button
             type="button"
             onClick={handleSubmit}
