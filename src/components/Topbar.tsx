@@ -191,7 +191,7 @@ export default function Topbar({
               </button>
             )}
             <h1
-              className="font-bold text-[16px] sm:text-[18px] lg:text-[20px] leading-[22px] lg:leading-[24px] truncate"
+              className="font-bold text-[16px] sm:text-[18px] lg:text-[16px] leading-[22px] lg:leading-[24px] truncate"
               style={{ color: titleColor }}
             >
               {title}
@@ -310,7 +310,11 @@ export default function Topbar({
             )}
 
             {/* Avatar */}
-            <div className="relative w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] rounded-full bg-[#D9D9D9] overflow-hidden shrink-0">
+            <Link
+              href="/pengaturan"
+              aria-label="Ke Profil Pengaturan"
+              className="relative w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] rounded-full bg-[#D9D9D9] overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-[#D45060]/60 transition-all"
+            >
               <CircleUserRound className="absolute inset-0 w-full h-full text-black/70" />
               {finalAvatar && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -322,7 +326,7 @@ export default function Topbar({
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               )}
-            </div>
+            </Link>
           </div>
         </>
       )}

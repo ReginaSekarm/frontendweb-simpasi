@@ -59,9 +59,9 @@ type MenuItem = {
 };
 
 const NAV_BASE =
-  'flex items-center h-[38px] pl-[12px] gap-[12px] rounded-l-full font-semibold text-[16px] transition-colors';
+  'flex items-center h-[38px] pl-[16px] gap-[16px] rounded-l-full font-semibold text-[15px] transition-colors';
 
-// ⚠️ 'notifikasi' & 'profil' SENGAJA tidak ada di sini
+// 'notifikasi' & 'profil' SENGAJA tidak ada di sini
 const MENU_ITEMS: MenuItem[] = [
   { key: 'dashboard',   href: '/dashboard',   label: 'Dashboard',   icon: DashboardIcon },
   { key: 'data-balita', href: '/data-balita', label: 'Data Balita', icon: HandsHoldingChildIcon },
@@ -101,7 +101,7 @@ export default function Sidebar({
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-40
-          w-[240px] shrink-0 h-full bg-[#D45060] flex flex-col
+          w-[185px] shrink-0 h-full bg-[#D45060] flex flex-col
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
@@ -133,7 +133,7 @@ export default function Sidebar({
                 <span className="w-[22px] flex justify-center shrink-0 relative">
                   <Icon className="w-[20px] h-[20px]" />
                 </span>
-                <span className="flex-1 pr-[12px]">{item.label}</span>
+                <span className="flex-1 pr-[16px]">{item.label}</span>
               </Link>
             );
           })}

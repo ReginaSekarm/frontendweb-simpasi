@@ -30,7 +30,7 @@ export default function KonfirmasiKeluarModal({ onTetap, onKeluar }: Props) {
           <button
             type="button"
             onClick={onTetap}
-            className="flex-1 h-[42px] sm:h-[44px] bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] transition-all duration-150 cursor-pointer"
+            className="flex-1 h-[42px] sm:h-[44px] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] transition-all duration-150 cursor-pointer border border-[#8F8F8F]"
           >
             Tetap di sini
           </button>

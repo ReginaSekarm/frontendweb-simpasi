@@ -16,37 +16,25 @@ type Props = {
   onDelete: () => void;
 };
 
-// ================= DATE HELPERS =================
-const BULAN_MAP: Record<string, string> = {
-  Januari: '01', Februari: '02', Maret: '03', April: '04',
-  Mei: '05', Juni: '06', Juli: '07', Agustus: '08',
-  September: '09', Oktober: '10', November: '11', Desember: '12',
-};
-const BULAN_ARR = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-];
-
+// ================= DATE HELPERS (FORMAT ANGKA YYYY-MM-DD / DD/MM/YYYY) =================
 function parseTanggal(str: string): string {
   if (!str) return '';
-  const parts = str.trim().split(' ');
-  if (parts.length === 3 && BULAN_MAP[parts[1]]) {
-    const day = parts[0].padStart(2, '0');
-    const month = BULAN_MAP[parts[1]];
-    return `${parts[2]}-${month}-${day}`;
-  }
+  // Jika format sudah YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  // Jika format DD/MM/YYYY
   if (str.includes('/')) {
     const [d, m, y] = str.split('/');
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
-  return '';
+  return str;
 }
 
 function formatTanggal(isoDate: string): string {
   if (!isoDate) return '';
   const [year, month, day] = isoDate.split('-');
-  const bulan = BULAN_ARR[parseInt(month, 10) - 1] || '';
-  return `${parseInt(day, 10)} ${bulan} ${year}`;
+  if (!year || !month || !day) return isoDate;
+  // Mengubah ke format DD/MM/YYYY agar konsisten berupa angka
+  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
 }
 
 // ================= KONFIRMASI BATAL =================
@@ -78,7 +66,7 @@ function KonfirmasiBatalModal({
           <button
             type="button"
             onClick={onTetap}
-            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
+            className="w-full sm:flex-1 h-[44px] sm:h-[46px] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer border border-[#8F8F8F]/50"
           >
             Tetap di sini
           </button>
@@ -141,7 +129,7 @@ export default function PemeriksaanModal({
             </div>
 
             <div className="mb-5">
-              <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">Identitas Balita &amp; Orang Tua</h2>
+              <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">Identitas Balita & Orang Tua</h2>
 
               <div className="mb-3">
                 <label className={labelStyle}>Nama Lengkap</label>
@@ -152,35 +140,35 @@ export default function PemeriksaanModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-3">
                 <div>
                   <label className={labelStyle}>Jenis Kelamin</label>
-                  <div className="flex rounded-[8px] overflow-hidden">
-                    {/* Laki-laki: biru saat aktif */}
+                  <div className="flex w-full h-[40px] rounded-[12px]">
                     <button
                       type="button"
                       onClick={() => onChange('jenisKelamin', 'Laki - laki')}
-                      className={`flex-1 h-[40px] flex items-center justify-center gap-2 font-semibold text-[13px] transition-colors cursor-pointer ${
-                        data.jenisKelamin === 'Laki - laki'
-                          ? 'bg-[#76C0EC]/70 text-[#1A5F8F]'
-                          : 'bg-[#D9D9D9]/45 text-[#8F8F8F] hover:bg-[#D9D9D9]/60'
+                      className={`flex-1 flex items-center justify-center gap-2 font-medium text-[14px] transition-all cursor-pointer rounded-l-[12px] border-2 ${
+                        data.jenisKelamin === 'Laki - laki' || !data.jenisKelamin
+                          ? 'border-[#8BB7D4] text-[#8BB7D4] bg-[#D9D9D9]/70 z-10'
+                          : 'border-transparent text-[#8F8F8F] bg-[#D9D9D9]/70'
                       }`}
                     >
-                      <span className="text-[15px] leading-none">♂</span>
+                      <span className="text-[16px] leading-none">♂</span>
                       <span>Laki-laki</span>
                     </button>
-                    {/* Perempuan: pink #E76D73 saat aktif */}
+
                     <button
                       type="button"
                       onClick={() => onChange('jenisKelamin', 'Perempuan')}
-                      className={`flex-1 h-[40px] flex items-center justify-center gap-2 font-semibold text-[13px] transition-colors cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-2 font-medium text-[14px] transition-all cursor-pointer rounded-r-[12px] border-2 ${
                         data.jenisKelamin === 'Perempuan'
-                          ? 'bg-[#E76D73] text-white'
-                          : 'bg-[#D9D9D9]/45 text-[#8F8F8F] hover:bg-[#D9D9D9]/60'
+                          ? 'border-[#E38D93] text-[#E38D93] bg-[#D9D9D9]/70 z-10'
+                          : 'border-transparent text-[#8F8F8F] bg-[#D9D9D9]/70'
                       }`}
                     >
-                      <span className="text-[15px] leading-none">♀</span>
+                      <span className="text-[16px] leading-none">♀</span>
                       <span>Perempuan</span>
                     </button>
                   </div>
                 </div>
+
                 <div>
                   <label className={labelStyle}>Usia</label>
                   <input type="text" value={data.usia} onChange={(e) => onChange('usia', e.target.value)} placeholder="Contoh: 15 Bulan" className={`${inputIdentitas} ${inputErr('usia')}`} />
@@ -190,16 +178,15 @@ export default function PemeriksaanModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-3">
                 <div>
-                  <label className={labelStyle}>Tempat &amp; Tanggal lahir</label>
+                  <label className={labelStyle}>Tempat & Tanggal lahir</label>
                   <div className="flex gap-2">
                     <input type="text" value={data.tempatLahir} onChange={(e) => onChange('tempatLahir', e.target.value)} placeholder="Tempat" className={`${inputIdentitas} flex-[1] ${inputErr('tempatLahir')}`} />
-                    {/* Tanggal lahir pakai date picker */}
                     <div className="relative flex-[1.4]">
                       <input
                         type="text"
                         value={data.tanggalLahir}
                         readOnly
-                        placeholder="Pilih tanggal"
+                        placeholder="dd/mm/yyyy"
                         className={`${inputIdentitas} pr-9 cursor-pointer ${inputErr('tanggalLahir')}`}
                       />
                       <input
@@ -291,7 +278,7 @@ export default function PemeriksaanModal({
             </div>
 
             <div>
-              <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">Kondisi &amp; Tanggal Pemeriksaan</h2>
+              <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">Kondisi & Tanggal Pemeriksaan</h2>
 
               <div className="mb-4">
                 <label className={labelStyle}>Kondisi Balita</label>
@@ -313,13 +300,12 @@ export default function PemeriksaanModal({
 
               <div className="max-w-[260px]">
                 <label className={labelStyle}>Tanggal Pemeriksaan</label>
-                {/* Tanggal pemeriksaan pakai date picker */}
                 <div className="relative">
                   <input
                     type="text"
                     value={data.tanggalPemeriksaan}
                     readOnly
-                    placeholder="Pilih tanggal"
+                    placeholder="dd/mm/yyyy"
                     className={`w-full h-[40px] px-3 pr-9 rounded-[8px] bg-[#D9D9D9]/30 border border-black/50 text-[#1a1a1a] placeholder-[#8F8F8F] text-[13px] font-medium focus:outline-none focus:border-[#D45060] focus:ring-1 focus:ring-[#D45060] transition cursor-pointer ${inputErr('tanggalPemeriksaan')}`}
                   />
                   <input
@@ -343,7 +329,7 @@ export default function PemeriksaanModal({
               <button
                 type="button"
                 onClick={handleBatalClick}
-                className="h-[42px] px-7 bg-[#D9D9D9] hover:bg-[#c9c9c9] rounded-[10px] text-[#8F8F8F] font-bold text-[15px] transition-colors cursor-pointer"
+                className="h-[42px] px-7 hover:bg-[#c9c9c9] rounded-[10px] text-[#8F8F8F] font-bold text-[15px] transition-colors cursor-pointer border border-[#8F8F8F]/50"
               >
                 Batal
               </button>

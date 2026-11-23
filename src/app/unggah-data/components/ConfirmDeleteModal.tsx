@@ -32,7 +32,7 @@ export default function ConfirmDeleteModal({ onClose, onConfirm }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
+            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-white border border-[#D9D9D9] hover:bg-[#D9D9D9] active:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#333333] font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
           >
             Batal
           </button>

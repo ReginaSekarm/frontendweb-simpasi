@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
 import { api } from '../../lib/api';
 
@@ -13,17 +13,10 @@ const PASSWORD_MESSAGE = 'Password minimal 8 karakter, mengandung 1 huruf besar 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const email = searchParams.get('email') || '';
-  // Kode OTP 4 digit dari halaman verifikasi. Dibaca dari beberapa kemungkinan nama parameter.
-  const otpCode = (
-    searchParams.get('otpCode') ||
-    searchParams.get('otp') ||
-    searchParams.get('code') ||
-    searchParams.get('token') ||
-    ''
-  ).trim();
-
+  const [email, setEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,10 +25,39 @@ function ResetPasswordContent() {
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // State untuk Popup Sukses
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+
+  useEffect(() => {
+    const queryEmail = searchParams.get('email') || '';
+    const queryOtp =
+      searchParams.get('otpCode') ||
+      searchParams.get('otp') ||
+      searchParams.get('code') ||
+      searchParams.get('token') ||
+      '';
+
+    const storedEmail =
+      typeof window !== 'undefined' ? sessionStorage.getItem('reset_email') || '' : '';
+    const storedOtp =
+      typeof window !== 'undefined' ? sessionStorage.getItem('reset_otp_code') || '' : '';
+
+    setEmail((queryEmail || storedEmail).trim());
+    setOtpCode((queryOtp || storedOtp).trim());
+  }, [searchParams]);
+
   useEffect(() => {
     setShowToast(true);
     const t = setTimeout(() => setShowToast(false), 4000);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +80,6 @@ function ResetPasswordContent() {
     setIsLoading(true);
 
     try {
-      // auth: false -> tidak mengirim token login dan tidak memicu redirect 401
       await api('/auth/reset-password', {
         method: 'POST',
         auth: false,
@@ -70,11 +91,18 @@ function ResetPasswordContent() {
         },
       });
 
-      alert('Password berhasil diperbarui. Silakan login kembali.');
-      router.push('/login');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('reset_email');
+        sessionStorage.removeItem('reset_otp_code');
+      }
+
+      setShowSuccessDialog(true);
+
+      redirectTimerRef.current = setTimeout(() => {
+        router.push('/login');
+      }, 3000);
     } catch (error: any) {
       setErrorMessage(error?.message || 'Gagal memperbarui password. Silakan coba lagi.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -82,7 +110,6 @@ function ResetPasswordContent() {
   return (
     <>
       <AuthLayout>
-        {/* Card disamakan dengan Login Kader */}
         <div
           className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
           style={{
@@ -196,8 +223,7 @@ function ResetPasswordContent() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-[24px] right-[24px] z-[9999]"
-          style={{ width: '380px', height: '100px' }}
+          className="fixed top-[24px] right-[16px] sm:right-[24px] z-[9999] w-[calc(100vw-32px)] max-w-[380px] h-[100px] animate-in slide-in-from-top-4 fade-in duration-300"
         >
           <div
             className="absolute inset-0"
@@ -208,13 +234,9 @@ function ResetPasswordContent() {
           />
 
           <div
-            className="absolute"
+            className="absolute top-0 bottom-0 right-0 bg-white"
             style={{
               left: '6px',
-              top: 0,
-              width: '369px',
-              height: '100px',
-              background: '#FFFFFF',
               borderRadius: '12px',
             }}
           />
@@ -255,11 +277,10 @@ function ResetPasswordContent() {
           </h3>
 
           <p
-            className="absolute"
+            className="absolute pr-4"
             style={{
               left: '58px',
               top: '40px',
-              width: '305px',
               fontSize: '12px',
               lineHeight: '15px',
               color: '#8F8F8F',
@@ -267,6 +288,45 @@ function ResetPasswordContent() {
           >
             Data email telah terkonfirmasi.
           </p>
+        </div>
+      )}
+
+      {/* ============ POPUP SUKSES PASSWORD BARU (MUNCUL DARI ATAS KANAN) ============ */}
+      {showSuccessDialog && (
+        <div className="fixed top-[24px] right-[16px] sm:right-[24px] z-[10000] w-[calc(100vw-32px)] max-w-[543px] animate-in slide-in-from-top-4 fade-in duration-300">
+          <div
+            className="relative flex items-center bg-[#2E9C52] rounded-[19px] shadow-2xl overflow-hidden"
+            style={{ minHeight: '100px' }}
+          >
+            {/* Inner white background yang memberikan efek border hijau di kiri */}
+            <div
+              className="absolute right-0 top-0 bottom-0 bg-white rounded-[19px]"
+              style={{ left: '9.53px', width: 'calc(100% - 9.53px)' }}
+            />
+
+            {/* Content */}
+            <div className="relative z-10 flex items-center w-full px-5 sm:px-[24px] py-4">
+              {/* Icon Centang Hijau */}
+              <div className="shrink-0 mr-3 sm:mr-[12px]">
+                <CheckCircle2
+                  className="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px]"
+                  fill="#2E9C52"
+                  color="#FFFFFF"
+                  strokeWidth={2}
+                />
+              </div>
+
+              {/* Texts */}
+              <div className="flex flex-col">
+                <h3 className="text-black font-bold text-[16px] sm:text-[18px] leading-[22px] mb-1">
+                  Password berhasil diperbarui
+                </h3>
+                <p className="text-[#8F8F8F] font-normal text-[13px] sm:text-[14px] leading-[18px]">
+                  Silakan login kembali dengan password baru Anda.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>

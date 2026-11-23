@@ -5,9 +5,6 @@ import type { Resep } from '../types';
 import { STATUS_RESEP_STYLE } from '../data';
 
 // ================= ICON SVG (dari file edit-pencil.svg, trash-fill.svg & fire_1.svg) =================
-// IconEdit & IconTrash: warna mengikuti `currentColor`, diatur lewat class text-*
-// IconFire: warna sudah menempel di SVG (3 warna), jadi tidak perlu class text-*
-
 function IconEdit({ className }: { className?: string }) {
   return (
     <svg
@@ -57,7 +54,7 @@ function IconFire({ className }: { className?: string }) {
     >
       <path
         fill="#FF8F1F"
-        d="M266.91 500.44c-168.738 0-213.822-175.898-193.443-291.147c.887-5.016 7.462-6.461 10.327-2.249c8.872 13.04 16.767 31.875 29.848 30.24c19.661-2.458 33.282-175.946 149.807-224.761c3.698-1.549 7.567 1.39 7.161 5.378c-5.762 56.533 28.181 137.468 88.316 137.468c34.472 0 58.058-27.512 69.844-55.142c3.58-8.393 15.843-7.335 17.896 1.556c21.031 91.082 77.25 398.657-179.756 398.657"
+        d="M266.91 500.44c-168.738 0-213.822-175.898-193.443-291.147c.887-5.016 7.462-6.461 10.327-2.249c8.872 13.04 16.767 31.875 29.848 30.24c19.661-2.458 33.282-175.946 149.807-224.761c3.698-1.549 7.567 1.39 7.161 5.378-5.762 56.533 28.181 137.468 88.316 137.468c34.472 0 58.058-27.512 69.844-55.142c3.58-8.393 15.843-7.335 17.896 1.556c21.031 91.082 77.25 398.657-179.756 398.657"
       />
       <path
         fill="#FFB636"
@@ -79,19 +76,17 @@ type Props = {
 };
 
 export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: Props) {
-  // Kalau Draft, anggap 0 komentar, dan tombol disabled
   const isDraft = resep.status === 'Draft';
   const commentCount = isDraft ? 0 : (resep.commentsCount ?? 0);
 
   const handleCommentClick = () => {
-    if (isDraft) return; // draft tidak bisa dikomentar
+    if (isDraft) return;
     onCommentClick(resep);
   };
 
   return (
-    // Figma: 158.05 x 243.67, border 1.1px #8F8F8F, radius 11
     <div className="bg-white border-[1.1px] border-[#8F8F8F] rounded-[11px] overflow-hidden flex flex-col w-full max-w-[158px] px-[11px] pt-[15px] pb-[8.5px]">
-      {/* Image + badge usia (Figma: 137.2 x 135, radius 11) */}
+      {/* Image + badge usia */}
       <div className="relative w-full aspect-[137.2/135] bg-[#D9D9D9] rounded-[11px] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -105,32 +100,30 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
         </span>
       </div>
 
-      {/* Nama resep (Figma: 11px, jarak ~9px dari gambar) */}
+      {/* Nama resep */}
       <p className="mt-[8.8px] px-[4.4px] text-black font-normal text-[11px] leading-[13px] truncate">
         {resep.nama}
       </p>
 
       {/* Status (kiri) + kalori (kanan) */}
-      <div className="mt-[6.2px] flex items-center justify-between">
-        {/* PERBAIKAN: Menghapus w-[54.88px] dan menggantinya dengan px-[10px] */}
+      <div className="mt-[6.2px] flex items-center justify-between gap-1">
         <span
-          className={`h-[19.76px] px-[10px] inline-flex items-center justify-center rounded-[5.5px] font-semibold text-[11px] leading-[13px] whitespace-nowrap ${STATUS_RESEP_STYLE[resep.status]}`}
+          className={`h-[19.76px] px-[8px] inline-flex items-center justify-center rounded-[5.5px] font-semibold text-[10px] leading-[13px] whitespace-nowrap ${STATUS_RESEP_STYLE[resep.status]}`}
         >
           {resep.status}
         </span>
 
-        <div className="flex items-center gap-[4px] pr-[0.6px]">
-          {/* 👇 Ikon api dari file fire_1.svg */}
-          <IconFire className="w-[13.17px] h-[13.17px] shrink-0" />
-          <span className="text-black font-normal text-[11px] leading-[13px] whitespace-nowrap">
-            {resep.kalori} kkal
+        <div className="flex items-center gap-[2px] shrink-0">
+          <IconFire className="w-[12px] h-[12px] shrink-0" />
+          {/* PERBAIKAN: Menghapus teks "kkal" ekstra agar tidak double menjadi "0 kkal kkal" */}
+          <span className="text-black font-normal text-[10px] leading-[13px] whitespace-nowrap">
+            {resep.kalori}
           </span>
         </div>
       </div>
 
       {/* Baris bawah: komentar (kiri) + edit/hapus (kanan) */}
       <div className="mt-[7px] flex items-end justify-between">
-        {/* Tombol komentar 30x30, shadow 0 4 4 rgba(0,0,0,.25) */}
         <button
           type="button"
           onClick={handleCommentClick}
@@ -151,7 +144,6 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
             strokeWidth={2.2}
           />
 
-          {/* Badge angka komentar — hanya tampil kalau bukan Draft & ada count */}
           {!isDraft && commentCount > 0 && (
             <span className="absolute -top-[3px] -right-[3px] min-w-[14px] h-[14px] px-[3px] rounded-full bg-[#D45060] text-white font-semibold text-[9px] leading-none flex items-center justify-center">
               {commentCount}
@@ -159,7 +151,6 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
           )}
         </button>
 
-        {/* Edit + Hapus (Figma: 16.46px, gap ~3px) — ikon dari file SVG */}
         <div className="flex items-center gap-[3.3px]">
           <button
             type="button"

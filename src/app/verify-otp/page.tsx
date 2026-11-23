@@ -3,17 +3,24 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '../../components/AuthLayout';
-import PageTransition from '../../components/PageTransition';  
+import PageTransition from '../../components/PageTransition';
+import { api } from '../../lib/api';
 
 function VerifyOTPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || 'nama@gmail.com';
+
+  const storedEmail =
+    typeof window !== 'undefined' ? sessionStorage.getItem('reset_email') || '' : '';
+  const email = (searchParams.get('email') || storedEmail).trim();
+  const purpose = searchParams.get('purpose') === 'register' ? 'register' : 'reset_password';
 
   const [otp, setOtp] = useState<string[]>(['', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -53,30 +60,80 @@ function VerifyOTPContent() {
     inputRefs.current[nextIdx]?.focus();
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+    
+    // Matikan toast (jika sedang muncul) saat verifikasi ditekan
+    setShowToast(false);
+
     const code = otp.join('');
     if (code.length !== 4) {
-      alert('Masukkan 4 digit kode verifikasi terlebih dahulu.');
+      setErrorMessage('Masukkan 4 digit kode verifikasi terlebih dahulu.');
       return;
     }
+
+    if (!email) {
+      setErrorMessage('Email tidak ditemukan. Ulangi proses dari awal.');
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      if (purpose === 'register') {
+        await api('/auth/verify-otp', {
+          method: 'POST',
+          auth: false,
+          body: { email, otpCode: code },
+        });
+        
+        // Langsung pindah halaman tanpa popup
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+
+      } else {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('reset_email', email);
+          sessionStorage.setItem('reset_otp_code', code);
+        }
+        
+        // Langsung pindah halaman tanpa popup
+        setTimeout(() => {
+          router.push(
+            `/reset-password?email=${encodeURIComponent(email)}&otpCode=${encodeURIComponent(code)}`
+          );
+        }, 1500);
+      }
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'Kode OTP salah atau sudah kedaluwarsa.');
       setIsLoading(false);
-      console.log('Verifikasi OTP:', code, 'untuk email:', email);
-      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-    }, 800);
+    }
   };
 
-  const handleResend = () => {
-    if (timeLeft > 0) return;
-    setTimeLeft(60);
-    setOtp(['', '', '', '']);
-    inputRefs.current[0]?.focus();
-    console.log('Kirim ulang kode ke:', email);
+  const handleResend = async () => {
+    if (timeLeft > 0 || !email) return;
+    setErrorMessage('');
 
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
+    try {
+      const res = await api<any>('/auth/resend-otp', {
+        method: 'POST',
+        auth: false,
+        body: { email, purpose },
+      });
+
+      setTimeLeft(res?.retryAfterSeconds || 60);
+      setOtp(['', '', '', '']);
+      inputRefs.current[0]?.focus();
+
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 5000);
+    } catch (error: any) {
+      if (error?.retryAfterSeconds) {
+        setTimeLeft(error.retryAfterSeconds);
+      }
+      setErrorMessage(error?.message || 'Gagal mengirim ulang kode OTP.');
+    }
   };
 
   const formatTime = (s: number) => {
@@ -88,7 +145,6 @@ function VerifyOTPContent() {
   return (
     <>
       <AuthLayout>
-        {/* Card disamakan dengan Login Kader */}
         <div
           className="w-full max-w-[520px] bg-white rounded-[30px] px-6 pt-8 pb-8 sm:pt-[44px] sm:pb-[70px] sm:pl-[80px] sm:pr-[86px] transition-all z-20"
           style={{
@@ -114,10 +170,16 @@ function VerifyOTPContent() {
             </h2>
             <p className="text-center text-[11.5px] text-black leading-[14px] mb-5">
               Masukkan 4 digit kode yang dikirim ke{' '}
-              <span className="font-semibold">{email}</span>
+              <span className="font-semibold">{email || 'nama@gmail.com'}</span>
             </p>
 
-            {/* Input OTP 4 Kotak diperkecil */}
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-[12px] rounded-md text-center">
+                {errorMessage}
+              </div>
+            )}
+
+            {/* Input OTP 4 Kotak */}
             <div className="flex justify-center gap-2 sm:gap-2.5 mb-5">
               {otp.map((digit, idx) => (
                 <input
@@ -162,7 +224,7 @@ function VerifyOTPContent() {
               </button>
             </div>
 
-            {/* Tombol Verifikasi disamakan dengan Login Kader */}
+            {/* Tombol Verifikasi */}
             <div className="flex justify-center sm:justify-start sm:pl-[38px]">
               <button
                 type="submit"
@@ -176,15 +238,14 @@ function VerifyOTPContent() {
         </div>
       </AuthLayout>
 
-      {/* ============ TOAST ============ */}
+      {/* ============ TOAST: KIRIM ULANG ============ */}
       {showToast && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-[24px] right-[24px] z-[9999]"
+          className="fixed top-[24px] right-[24px] z-[9999] animate-in slide-in-from-top-4 fade-in duration-300"
           style={{ width: '380px', height: '100px' }}
         >
-          {/* Background hijau (aksen kiri) */}
           <div
             className="absolute inset-0"
             style={{
@@ -193,7 +254,6 @@ function VerifyOTPContent() {
             }}
           />
 
-          {/* Panel putih */}
           <div
             className="absolute"
             style={{
@@ -206,7 +266,6 @@ function VerifyOTPContent() {
             }}
           />
 
-          {/* Icon centang */}
           <svg
             className="absolute"
             style={{
@@ -230,7 +289,6 @@ function VerifyOTPContent() {
             />
           </svg>
 
-          {/* Judul */}
           <h3
             className="absolute font-bold text-black"
             style={{
@@ -243,7 +301,6 @@ function VerifyOTPContent() {
             Kode OTP berhasil dikirim ulang
           </h3>
 
-          {/* Deskripsi */}
           <p
             className="absolute"
             style={{

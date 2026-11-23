@@ -8,7 +8,7 @@ import Topbar from '../../components/Topbar';
 import AuthGuard from '../../components/AuthGuard';
 import GantiKataSandiTab from '../../components/GantiKataSandiTab';
 import ProfilToast from '../../components/ProfilToast';
-import { useProfilFoto } from '../../components/profilFoto';
+import { useProfilFoto, setProfilFoto } from '../../components/profilFoto';
 import { api } from '../../lib/api';
 
 // ================= TANGGAL =================
@@ -23,7 +23,6 @@ const BULAN_ARR = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ];
 
-// "12 Maret 1989" -> "1989-03-12" (format yang diminta backend)
 function parseTanggalLahir(str: string): string {
   if (!str) return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
@@ -36,7 +35,6 @@ function parseTanggalLahir(str: string): string {
   return `${year}-${month}-${day}`;
 }
 
-// "1989-03-12" atau "1989-03-11T17:00:00.000Z" -> "12 Maret 1989"
 function formatTanggalLahir(isoDate: string): string {
   if (!isoDate) return '';
 
@@ -45,7 +43,6 @@ function formatTanggalLahir(isoDate: string): string {
   let day = '';
 
   if (isoDate.includes('T')) {
-    // Tanggal ber-zona waktu: pakai tanggal lokal supaya tidak bergeser sehari
     const t = new Date(isoDate);
     if (Number.isNaN(t.getTime())) return isoDate;
     year = String(t.getFullYear());
@@ -68,7 +65,6 @@ const hariIniIso = (): string => {
   return `${t.getFullYear()}-${mm}-${dd}`;
 };
 
-// Ambil nilai pertama yang terisi (toleran snake_case maupun camelCase)
 const pick = (o: any, ...keys: string[]): any => {
   for (const k of keys) {
     const v = o?.[k];
@@ -77,20 +73,88 @@ const pick = (o: any, ...keys: string[]): any => {
   return '';
 };
 
-function BatalKonfirmasiModal({ onTetap, onBatalkan }: { onTetap: () => void; onBatalkan: () => void }) {
+function BatalKonfirmasiModal({
+  onTetap,
+  onBatalkan,
+}: {
+  onTetap: () => void;
+  onBatalkan: () => void;
+}) {
   return (
-    <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 p-4">
-      <div className="relative shadow-2xl bg-white" style={{ width: '460px', height: '250px', borderRadius: '12px' }}>
-        <h2 className="absolute font-semibold text-black text-center" style={{ left: '50%', top: '42px', transform: 'translateX(-50%)', width: '400px', fontSize: '20px', lineHeight: '26px' }}>
+    <div
+      className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 p-4"
+      onClick={onTetap}
+    >
+      <div
+        className="relative shadow-2xl bg-white"
+        style={{
+          width: '480px',
+          height: '260px',
+          borderRadius: '12px',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2
+          className="absolute font-semibold text-black text-center"
+          style={{
+            left: '50%',
+            top: '42px',
+            transform: 'translateX(-50%)',
+            width: '400px',
+            fontSize: '20px',
+            lineHeight: '26px',
+          }}
+        >
           Batalkan Perubahan?
         </h2>
-        <p className="absolute text-black text-center" style={{ left: '50%', top: '86px', transform: 'translateX(-50%)', width: '400px', fontSize: '13px', lineHeight: '18px' }}>
-          Perubahan yang belum disimpan akan hilang. Yakin ingin membatalkan?
+
+        <p
+          className="absolute text-black text-center"
+          style={{
+            left: '50%',
+            top: '78px',
+            transform: 'translateX(-50%)',
+            width: '420px',
+            fontSize: '13px',
+            lineHeight: '19px',
+          }}
+        >
+          Perubahan yang belum disimpan akan hilang.<br />
+          Yakin ingin membatalkan?
         </p>
-        <button type="button" onClick={onTetap} className="absolute font-semibold transition-colors hover:bg-[#c9c9c9] cursor-pointer bg-[#D9D9D9]" style={{ left: '30px', top: '175px', width: '190px', height: '42px', borderRadius: '10px', fontSize: '15px', color: 'rgba(121, 119, 119, 0.8)' }}>
+
+        <button
+          type="button"
+          onClick={onTetap}
+          className="absolute font-semibold transition-colors bg-white hover:bg-[#c9c9c9] text-[#797777] cursor-pointer"
+          style={{
+            left: '35px',
+            top: '175px',
+            width: '195px',
+            height: '44px',
+            borderRadius: '10px',
+            fontSize: '16px',
+            lineHeight: '20px',
+            border: '1px solid #AAA6A6',
+          }}
+        >
           Tetap di sini
         </button>
-        <button type="button" onClick={onBatalkan} className="absolute font-semibold text-white transition-colors hover:bg-[#e0001c] cursor-pointer bg-[#FF0020]" style={{ left: '240px', top: '175px', width: '190px', height: '42px', borderRadius: '10px', fontSize: '15px' }}>
+
+        <button
+          type="button"
+          onClick={onBatalkan}
+          className="absolute font-semibold text-white transition-colors hover:bg-[#e0001c] cursor-pointer bg-[#FF0020]"
+          style={{
+            left: '250px',
+            top: '175px',
+            width: '195px',
+            height: '44px',
+            borderRadius: '10px',
+            fontSize: '16px',
+            lineHeight: '20px',
+          }}
+        >
           Ya, Batalkan
         </button>
       </div>
@@ -166,6 +230,13 @@ function PengaturanContent() {
       const foto = String(pick(d, 'photo_url', 'photoUrl'));
       setFotoPreview(foto);
       setExistingPhotoUrl(foto);
+
+      // TAMBAHKAN INI: Sinkronkan foto dari database ke Topbar via localStorage
+      if (foto) {
+        setProfilFoto(foto);
+      } else {
+        setProfilFoto('');
+      }
     } catch (error) {
       console.error('Gagal memuat profil pengaturan:', error);
     }
@@ -271,6 +342,13 @@ function PengaturanContent() {
         },
       });
 
+      //  TAMBAHKAN INI: Sinkronkan foto baru ke Topbar via localStorage 
+      if (finalPhotoUrl) {
+        setProfilFoto(finalPhotoUrl);
+      } else {
+        setProfilFoto('');
+      }
+
       setSelectedFile(null);
       await loadProfile();
       setShowToast(true);
@@ -297,7 +375,7 @@ function PengaturanContent() {
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col min-w-0">
         <Topbar
           title="Pengaturan"
-          titleColor="#000000"
+          titleColor="#D45060"
           onMenuClick={() => setSidebarOpen(true)}
         />
 
@@ -355,8 +433,15 @@ function PengaturanContent() {
               {/* ============ AVATAR + NAMA ============ */}
               <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-7">
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" onChange={handleFotoChange} className="hidden" />
-                <div className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[100px] lg:h-[100px] rounded-full overflow-hidden bg-[#D9D9D9] shrink-0 relative">
-                  <button type="button" disabled={!isEditMode} onClick={() => isEditMode && fileInputRef.current?.click()} className={`w-full h-full rounded-full overflow-hidden relative ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}>
+                
+                {/* Wrapper luar: TANPA overflow-hidden agar tombol pensil tidak terpotong */}
+                <div className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[100px] lg:h-[100px] shrink-0 relative">
+                  <button
+                    type="button"
+                    disabled={!isEditMode}
+                    onClick={() => isEditMode && fileInputRef.current?.click()}
+                    className={`w-full h-full rounded-full overflow-hidden bg-[#D9D9D9] relative block ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+                  >
                     <CircleUserRound className="absolute inset-0 w-full h-full text-black/70" strokeWidth={1} />
                     {(fotoPreview || fotoProfil) && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -369,8 +454,13 @@ function PengaturanContent() {
                       />
                     )}
                   </button>
+
                   {isEditMode && (
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="absolute bottom-1 right-1 w-[26px] h-[26px] rounded-full bg-[#D45060] flex items-center justify-center border-2 border-white shadow cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 w-[28px] h-[28px] rounded-full bg-[#D45060] hover:bg-[#c44454] flex items-center justify-center border-2 border-white shadow-md z-10 cursor-pointer transition-colors"
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
                         <path d="M3.995 17.207V19.5a.5.5 0 0 0 .5.5h2.298a.5.5 0 0 0 .353-.146l9.448-9.448l-3-3l-9.452 9.448a.5.5 0 0 0-.147.353m10.837-11.04l3 3l1.46-1.46a1 1 0 0 0 0-1.414l-1.585-1.586a1 1 0 0 0-1.414 0z" />
                       </svg>
@@ -459,7 +549,9 @@ function PengaturanContent() {
               {/* Tombol Aksi di Mode Edit */}
               {isEditMode && (
                 <div className="mt-8 flex items-center justify-end gap-3">
-                  <button type="button" onClick={() => setShowBatalConfirm(true)} disabled={isSaving} className="w-[110px] h-[36px] bg-[#D9D9D9] rounded-[8px] text-[#8F8F8F] text-[14px] font-medium cursor-pointer">Batal</button>
+                  <button type="button" onClick={() => setShowBatalConfirm(true)} disabled={isSaving} className="w-[110px] h-[36px] hover:bg-[#c9c9c9] rounded-[8px] text-[#8F8F8F] text-[14px] font-medium cursor-pointer border border-[#8F8F8F]/50">
+                    Batal
+                  </button>
                   <button type="button" onClick={handleSimpan} disabled={isSaving} className="w-[110px] h-[36px] bg-[#D45060] rounded-[8px] text-white text-[14px] font-medium cursor-pointer disabled:opacity-50">
                     {isSaving ? 'Menyimpan...' : 'Simpan'}
                   </button>

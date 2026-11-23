@@ -28,7 +28,7 @@ function KonfirmasiBatalModal({
       onClick={onTetap}
     >
       <div
-        className="relative w-full max-w-[480px] bg-white rounded-[14px] sm:rounded-[16px] shadow-2xl px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-8"
+        className="relative w-full max-w-[480px] bg-white rounded-[14px] sm:rounded-[16px] shadow-2xl px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-8 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Judul */}
@@ -46,14 +46,14 @@ function KonfirmasiBatalModal({
           <button
             type="button"
             onClick={onTetap}
-            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777]/90 font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
+            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-white border border-[#AAA6A6] hover:bg-[#D9D9D9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[10px] text-[#797777] font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
           >
             Tetap di sini
           </button>
           <button
             type="button"
             onClick={onBatalkan}
-            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-[#FF0020] hover:bg-[#e0001c] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#FF0020]/50 focus-visible:outline-none rounded-[10px] text-white font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer"
+            className="w-full sm:flex-1 h-[44px] sm:h-[46px] bg-[#FF0020] hover:bg-[#e0001c] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#FF0020]/50 focus-visible:outline-none rounded-[10px] text-white font-semibold text-[14px] sm:text-[15px] transition-all duration-150 cursor-pointer shadow-sm"
           >
             Ya, Batalkan
           </button>
@@ -87,14 +87,11 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
     }
     onChange('image', file);
     onChange('imagePreview', URL.createObjectURL(file));
-    // reset supaya file yang sama bisa dipilih ulang
     input.value = '';
   };
 
-  // Klik Batal -> tampilkan konfirmasi dulu
   const handleBatalClick = () => setShowBatalConfirm(true);
 
-  // Konfirmasi "Ya, Batalkan" -> tutup modal utama
   const handleKonfirmasiBatal = () => {
     setShowBatalConfirm(false);
     onClose();
@@ -164,7 +161,9 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
                       type="button"
                       onClick={() => onChange('usia', usia)}
                       className={`h-[32px] px-3.5 rounded-[8px] font-semibold text-[12px] leading-[14px] transition-colors cursor-pointer ${
-                        isActive ? 'bg-[#D45060] text-white' : 'bg-[#D9D9D9]/50 text-[#AAA6A6]/50 hover:bg-[#D9D9D9]/70'
+                        isActive
+                          ? 'bg-[#D45060] text-white shadow-sm'
+                          : 'bg-white border border-[#D45060] text-[#8F8F8F] hover:bg-[#F88B92]/10'
                       }`}
                     >
                       {USIA_RESEP_LABELS[usia]}
@@ -190,21 +189,21 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
                 <div>
                   <p className="text-[12px] font-semibold text-black/70 mb-1.5">Protein</p>
                   <div className="flex items-center gap-1.5">
-                    <input type="text" value={data.protein} onChange={(e) => onChange('protein', e.target.value)} className={`${inputText} max-w-[90px]`} />
+                    <input type="text" value={data.protein} onChange={(e) => onChange('protein', e.target.value)} className={`${inputText} max-w-[90px] ${inputErr('protein')}`} />
                     <span className="text-[12px] font-semibold text-[#8F8F8F]/80">gr</span>
                   </div>
                 </div>
                 <div>
                   <p className="text-[12px] font-semibold text-black/70 mb-1.5">Karbohidrat</p>
                   <div className="flex items-center gap-1.5">
-                    <input type="text" value={data.karbohidrat} onChange={(e) => onChange('karbohidrat', e.target.value)} className={`${inputText} max-w-[90px]`} />
+                    <input type="text" value={data.karbohidrat} onChange={(e) => onChange('karbohidrat', e.target.value)} className={`${inputText} max-w-[90px] ${inputErr('karbohidrat')}`} />
                     <span className="text-[12px] font-semibold text-[#8F8F8F]/80">gr</span>
                   </div>
                 </div>
                 <div>
                   <p className="text-[12px] font-semibold text-black/70 mb-1.5">Lemak</p>
                   <div className="flex items-center gap-1.5">
-                    <input type="text" value={data.lemak} onChange={(e) => onChange('lemak', e.target.value)} className={`${inputText} max-w-[90px]`} />
+                    <input type="text" value={data.lemak} onChange={(e) => onChange('lemak', e.target.value)} className={`${inputText} max-w-[90px] ${inputErr('lemak')}`} />
                     <span className="text-[12px] font-semibold text-[#8F8F8F]/80">gr</span>
                   </div>
                 </div>
@@ -214,7 +213,7 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
             <div className="mb-5">
               <label className={labelStyle}>Estimasi Kalori</label>
               <div className="flex items-center gap-1.5">
-                <input type="text" value={data.kalori} onChange={(e) => onChange('kalori', e.target.value)} className={`${inputText} max-w-[130px]`} />
+                <input type="text" value={data.kalori} onChange={(e) => onChange('kalori', e.target.value)} className={`${inputText} max-w-[130px] ${inputErr('kalori')}`} />
                 <span className="text-[12px] font-semibold text-[#8F8F8F]/80">kkal</span>
               </div>
             </div>
@@ -236,14 +235,14 @@ export default function TambahResepModal({ data, errors, onChange, onClose, onPu
               <button
                 type="button"
                 onClick={onSaveDraft}
-                className="h-[32px] px-5 bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[8px] text-[#8F8F8F] font-semibold text-[12px] leading-[14px] transition-all duration-150 cursor-pointer"
+                className="h-[32px] px-5 hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#D45060]/50 focus-visible:outline-none rounded-[8px] text-[#8F8F8F] font-semibold text-[12px] leading-[14px] transition-all duration-150 cursor-pointer border border-[#8F8F8F]"
               >
                 Simpan Draft
               </button>
               <button
                 type="button"
                 onClick={handleBatalClick}
-                className="h-[32px] px-8 bg-[#D9D9D9] hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[8px] text-[#8F8F8F] font-semibold text-[12px] leading-[14px] transition-all duration-150 cursor-pointer"
+                className="h-[32px] px-8 hover:bg-[#c9c9c9] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#8F8F8F]/50 focus-visible:outline-none rounded-[8px] text-[#8F8F8F] font-semibold text-[12px] leading-[14px] transition-all duration-150 cursor-pointer border border-[#8F8F8F]"
               >
                 Batal
               </button>

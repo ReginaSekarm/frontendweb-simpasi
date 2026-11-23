@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Trash2, Calendar } from 'lucide-react';
 import type { BalitaForm } from '../types';
 
@@ -15,38 +15,48 @@ type Props = {
 };
 
 // ================= DATE HELPERS =================
-const BULAN_MAP: Record<string, string> = {
-  Januari: '01', Februari: '02', Maret: '03', April: '04',
-  Mei: '05', Juni: '06', Juli: '07', Agustus: '08',
-  September: '09', Oktober: '10', November: '11', Desember: '12',
-};
-const BULAN_ARR = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-];
-
 function parseTanggal(str: string): string {
   if (!str) return '';
-  // Support format "12 Maret 1989"
-  const parts = str.trim().split(' ');
-  if (parts.length === 3 && BULAN_MAP[parts[1]]) {
-    const day = parts[0].padStart(2, '0');
-    const month = BULAN_MAP[parts[1]];
-    return `${parts[2]}-${month}-${day}`;
-  }
-  // Support format "DD/MM/YYYY"
   if (str.includes('/')) {
-    const [d, m, y] = str.split('/');
-    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    const parts = str.trim().split('/');
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
   }
-  return '';
+  return str;
 }
 
 function formatTanggal(isoDate: string): string {
   if (!isoDate) return '';
   const [year, month, day] = isoDate.split('-');
-  const bulan = BULAN_ARR[parseInt(month, 10) - 1] || '';
-  return `${parseInt(day, 10)} ${bulan} ${year}`;
+  if (!year || !month || !day) return isoDate;
+  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+}
+
+// ================= HITUNG USIA OTOMATIS =================
+function hitungUsiaOtomatis(tanggalLahirStr: string): string {
+  if (!tanggalLahirStr) return '';
+  
+  let birthDate: Date;
+  if (tanggalLahirStr.includes('/')) {
+    const [d, m, y] = tanggalLahirStr.split('/');
+    birthDate = new Date(`${y}-${m}-${d}`);
+  } else {
+    birthDate = new Date(tanggalLahirStr);
+  }
+
+  if (isNaN(birthDate.getTime())) return '';
+
+  const today = new Date();
+  let months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
+  
+  if (today.getDate() < birthDate.getDate()) {
+    months--;
+  }
+  
+  const hasilBulan = Math.max(0, months);
+  return `${hasilBulan} Bulan`;
 }
 
 // ================= KONFIRMASI BATAL =================
@@ -82,7 +92,7 @@ function KonfirmasiBatalModal({
             lineHeight: '26px',
           }}
         >
-          Batalkan Perubahan?
+          Batalkan Resep Ini?
         </h2>
 
         <p
@@ -96,13 +106,13 @@ function KonfirmasiBatalModal({
             lineHeight: '20px',
           }}
         >
-          Perubahan yang belum disimpan akan hilang. Yakin ingin membatalkan?
+          Data yang sudah diisi belum tersimpan dan akan hilang. Yakin ingin membatalkan?
         </p>
 
         <button
           type="button"
           onClick={onTetap}
-          className="absolute font-semibold transition-colors hover:bg-[#c9c9c9] cursor-pointer bg-[#D9D9D9]"
+          className="absolute font-semibold transition-colors hover:bg-[#c9c9c9] cursor-pointer bg-white text-[#797777]"
           style={{
             left: '35px',
             top: '175px',
@@ -111,7 +121,7 @@ function KonfirmasiBatalModal({
             borderRadius: '10px',
             fontSize: '16px',
             lineHeight: '20px',
-            color: 'rgba(121, 119, 119, 0.8)',
+            border: '1px solid #AAA6A6',
           }}
         >
           Tetap di sini
@@ -142,6 +152,16 @@ function KonfirmasiBatalModal({
 export default function BalitaFormModal({ mode, data, errors, onChange, onClose, onSave, onDelete }: Props) {
   const [showBatalConfirm, setShowBatalConfirm] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-hitung usia ketika tanggal lahir berubah
+  useEffect(() => {
+    if (data.tanggalLahir) {
+      const usiaOtomatis = hitungUsiaOtomatis(data.tanggalLahir);
+      if (usiaOtomatis && usiaOtomatis !== data.usia) {
+        onChange('usia', usiaOtomatis);
+      }
+    }
+  }, [data.tanggalLahir]);
 
   const inputIdentitas =
     'w-full h-[40px] px-3 rounded-[8px] bg-[#D9D9D9]/45 text-[#1a1a1a] placeholder-[#8F8F8F] text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-[#D45060]/40 transition';
@@ -181,7 +201,7 @@ export default function BalitaFormModal({ mode, data, errors, onChange, onClose,
             {/* SECTION 1: IDENTITAS */}
             <div className="mb-5">
               <h2 className="text-[#D45060] font-bold text-[13px] uppercase tracking-wide mb-3">
-                Identitas Balita &amp; Orang Tua
+                Identitas Balita & Orang Tua
               </h2>
               <div className="mb-3">
                 <label className={labelStyle}>Nama Lengkap</label>
@@ -190,56 +210,66 @@ export default function BalitaFormModal({ mode, data, errors, onChange, onClose,
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-3">
+                
+                {/* BAGIAN JENIS KELAMIN SESUAI FIGMA (OUTLINE & BORDER) */}
                 <div>
                   <label className={labelStyle}>Jenis Kelamin</label>
-                  <div className="flex rounded-[8px] overflow-hidden">
-                    {/* Laki-laki: biru saat aktif */}
+                  <div className="flex w-full h-[40px] rounded-[12px]">
+                    {/* Laki-laki */}
                     <button
                       type="button"
                       onClick={() => onChange('jenisKelamin', 'Laki - laki')}
-                      className={`flex-1 h-[40px] flex items-center justify-center gap-2 font-semibold text-[13px] transition-colors cursor-pointer ${
-                        data.jenisKelamin === 'Laki - laki'
-                          ? 'bg-[#76C0EC]/70 text-[#1A5F8F]'
-                          : 'bg-[#D9D9D9]/45 text-[#8F8F8F] hover:bg-[#D9D9D9]/60'
+                      className={`flex-1 flex items-center justify-center gap-2 font-medium text-[14px] transition-all cursor-pointer rounded-l-[12px] border-2 ${
+                        data.jenisKelamin === 'Laki - laki' || !data.jenisKelamin
+                          ? 'border-[#8BB7D4] text-[#8BB7D4] bg-[#D9D9D9]/70 z-10'
+                          : 'border-transparent text-[#8F8F8F] bg-[#D9D9D9]/70'
                       }`}
                     >
-                      <span className="text-[15px] leading-none">♂</span>
+                      <span className="text-[16px] leading-none">♂</span>
                       <span>Laki-laki</span>
                     </button>
-                    {/* Perempuan: pink #E76D73 saat aktif */}
+                    
+                    {/* Perempuan */}
                     <button
                       type="button"
                       onClick={() => onChange('jenisKelamin', 'Perempuan')}
-                      className={`flex-1 h-[40px] flex items-center justify-center gap-2 font-semibold text-[13px] transition-colors cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-2 font-medium text-[14px] transition-all cursor-pointer rounded-r-[12px] border-2 ${
                         data.jenisKelamin === 'Perempuan'
-                          ? 'bg-[#E76D73] text-white'
-                          : 'bg-[#D9D9D9]/45 text-[#8F8F8F] hover:bg-[#D9D9D9]/60'
+                          ? 'border-[#E38D93] text-[#E38D93] bg-[#D9D9D9]/70 z-10'
+                          : 'border-transparent text-[#8F8F8F] bg-[#D9D9D9]/70'
                       }`}
                     >
-                      <span className="text-[15px] leading-none">♀</span>
+                      <span className="text-[16px] leading-none">♀</span>
                       <span>Perempuan</span>
                     </button>
                   </div>
                 </div>
+                {/* 👆 BATAS PERUBAHAN 👆 */}
+
                 <div>
                   <label className={labelStyle}>Usia</label>
-                  <input type="text" value={data.usia} onChange={(e) => onChange('usia', e.target.value)} placeholder="Contoh: 15 Bulan" className={`${inputIdentitas} ${inputErr('usia')}`} />
+                  <input 
+                    type="text" 
+                    value={data.usia} 
+                    readOnly 
+                    placeholder="Otomatis terhitung dari tanggal lahir" 
+                    className={`${inputIdentitas} ${inputErr('usia')} bg-[#EFEFEF] cursor-not-allowed`} 
+                  />
                   {errText('usia')}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-3">
                 <div>
-                  <label className={labelStyle}>Tempat &amp; Tanggal lahir</label>
+                  <label className={labelStyle}>Tempat & Tanggal lahir</label>
                   <div className="flex gap-2">
                     <input type="text" value={data.tempatLahir} onChange={(e) => onChange('tempatLahir', e.target.value)} placeholder="Tempat" className={`${inputIdentitas} flex-[1] ${inputErr('tempatLahir')}`} />
-                    {/* Tanggal lahir pakai date picker */}
                     <div className="relative flex-[1.4]">
                       <input
                         type="text"
                         value={data.tanggalLahir}
                         readOnly
-                        placeholder="Pilih tanggal"
+                        placeholder="dd/mm/yyyy"
                         className={`${inputIdentitas} pr-9 cursor-pointer ${inputErr('tanggalLahir')}`}
                       />
                       <input
@@ -333,13 +363,19 @@ export default function BalitaFormModal({ mode, data, errors, onChange, onClose,
 
           <div className={`border-t border-[#AAA6A6]/40 bg-white px-7 py-3.5 flex items-center ${mode === 'edit' ? 'justify-between' : 'justify-end'}`}>
             {mode === 'edit' && (
-              <button type="button" onClick={onDelete} className="h-[42px] px-5 flex items-center gap-2 border-2 border-[#FF0000] rounded-[10px] text-[#FF0000] font-bold text-[14px] hover:bg-[#D45060]/5 transition-colors cursor-pointer">
+              <button type="button" onClick={onDelete} className="h-[42px] px-5 flex items-center gap-2 bg-white border border-[#FF0000] rounded-[10px] text-[#FF0000] font-bold text-[14px] hover:bg-[#FF0000]/10 transition-colors cursor-pointer">
                 <Trash2 className="w-[18px] h-[18px]" strokeWidth={2} />
                 <span>Hapus</span>
               </button>
             )}
             <div className="flex items-center gap-3">
-              <button type="button" onClick={handleBatalClick} className="h-[42px] px-7 bg-[#D9D9D9] hover:bg-[#c9c9c9] rounded-[10px] text-[#8F8F8F] font-bold text-[15px] transition-colors cursor-pointer">Batal</button>
+              <button 
+                type="button" 
+                onClick={handleBatalClick} 
+                className="h-[42px] px-7 bg-white border border-[#AAA6A6] hover:bg-[#D9D9D9] rounded-[10px] text-[#797777] font-bold text-[15px] transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
               <button type="button" onClick={onSave} className="h-[42px] px-7 bg-[#D45060] hover:bg-[#c44454] rounded-[10px] text-white font-bold text-[15px] transition-colors cursor-pointer">Simpan</button>
             </div>
           </div>
