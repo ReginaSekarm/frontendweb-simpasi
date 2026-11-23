@@ -1,27 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import {
   ArrowLeft,
   Plus,
   AlertCircle,
   ChefHat,
 } from 'lucide-react';
-import Sidebar from '../../../components/Sidebar';
-import Topbar from '../../../components/Topbar';
+import Sidebar from '../../../../components/Sidebar';
+import Topbar from '../../../../components/Topbar';
 
-import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../types';
+import type { PemeriksaanForm, ToastState, RiwayatPemeriksaan } from '../../types';
 import {
   EMPTY_PEMERIKSAAN,
   KONDISI_STYLE,
   KONDISI_DOT,
-} from '../data';
+} from '../../data';
 
-import Toast from '../components/Toast';
-import PemeriksaanModal from '../components/PemeriksaanModal';
+import Toast from '../../components/Toast';
+import PemeriksaanModal from '../../components/PemeriksaanModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import { api } from '../../../lib/api';
+import { api } from '../../../../lib/api';
 
 // ================= HELPERS =================
 const BULAN_MAP: Record<string, string> = {
@@ -87,10 +87,10 @@ const mapRow = (row: any): RiwayatPemeriksaan => ({
   canEdit: Boolean(Number(row.can_edit)),
 });
 
-function DetailContent() {
+export default function DetailRiwayatPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const balitaIdParam = searchParams.get('balitaId');
+  const params = useParams();
+  const balitaIdParam = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [balita, setBalita] = useState<any>(null);
@@ -120,7 +120,7 @@ function DetailContent() {
     }
   }, [balitaIdParam]);
 
-  // Ambil detail balita dari backend berdasarkan balitaId yang diklik
+  // Ambil detail balita dari backend berdasarkan id di URL
   useEffect(() => {
     const fetchBalitaDetail = async () => {
       if (!balitaIdParam) return;
@@ -329,7 +329,7 @@ function DetailContent() {
 
       setPeriksaOpen(false);
       setEditTargetId(null);
-      await fetchRiwayat(); // ambil ulang dari DB supaya yang tampil = yang tersimpan
+      await fetchRiwayat();
     } catch (err: any) {
       setToast({
         visible: true,
@@ -542,13 +542,5 @@ function DetailContent() {
         <Toast type={toast.type} title={toast.title} message={toast.message} onClose={() => setToast(null)} />
       )}
     </div>
-  );
-}
-
-export default function DetailRiwayatPage() {
-  return (
-    <Suspense fallback={<div className="h-screen w-full bg-[#B3EAE8]" />}>
-      <DetailContent />
-    </Suspense>
   );
 }

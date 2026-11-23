@@ -744,7 +744,7 @@ function UnggahDataContent() {
                           <button
                             key={balita.id}
                             type="button"
-                            onClick={() => router.push(`/unggah-data/detail?balitaId=${balita.id}`)}
+                            onClick={() => router.push(`/unggah-data/detail/${balita.id}`)}
                             className="w-full h-[64px] bg-white border border-black/25 rounded-[8px] flex items-center gap-3 px-3 sm:px-4 hover:bg-[#F7F8F0] active:bg-[#F0F0E8] transition-colors cursor-pointer text-left"
                           >
                             <div className="w-[38px] h-[38px] rounded-full bg-[#FCEBD5] flex items-center justify-center shrink-0">
