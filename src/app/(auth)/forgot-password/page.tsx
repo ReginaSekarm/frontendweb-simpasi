@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import AuthLayout from '../../components/AuthLayout';
-import PageTransition from '../../components/PageTransition';
+import AuthLayout from '../../../components/AuthLayout';
+import PageTransition from '../../../components/PageTransition';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();

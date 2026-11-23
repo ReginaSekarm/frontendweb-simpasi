@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AuthLayout from '../../components/AuthLayout';
-import PageTransition from '../../components/PageTransition';
-import { api } from '../../lib/api';
+import AuthLayout from '../../../components/AuthLayout';
+import PageTransition from '../../../components/PageTransition';
+import { api } from '../../../lib/api';
 
 function VerifyOTPContent() {
   const router = useRouter();

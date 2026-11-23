@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, X } from 'lucide-react';
-import AuthLayout from '../../components/AuthLayout';
-import PageTransition from '../../components/PageTransition';
-import {SYARAT_KETENTUAN, KEBIJAKAN_PRIVASI, KEBIJAKAN_PRIVASI_INTRO,} from '../login/syarat-kebijakan';
-import { api, ApiError } from '../../lib/api';
-import { saveToken } from '../../lib/auth';
+import AuthLayout from '../../../components/AuthLayout';
+import PageTransition from '../../../components/PageTransition';
+import {SYARAT_KETENTUAN, KEBIJAKAN_PRIVASI, KEBIJAKAN_PRIVASI_INTRO,} from './syarat-kebijakan';
+import { api, ApiError } from '../../../lib/api';
+import { saveToken } from '../../../lib/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -49,14 +49,14 @@ export default function AdminLoginPage() {
 
         if (!isProfileComplete) {
           // Pertama kali login / profil belum lengkap -> Wajib lengkapi profil lewat halaman profil mode edit
-          router.push('/profil?mode=edit');
+          router.push('/pengaturan?mode=edit');
         } else {
           // Sudah pernah diisi/lengkap -> Langsung ke dashboard
           router.push('/dashboard');
         }
       } catch {
         // Fallback jika fetch profil gagal
-        router.push('/profil?mode=edit');
+        router.push('/pengaturan?mode=edit');
       }
     } catch (err) {
       setError(

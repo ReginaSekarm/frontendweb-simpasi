@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
-import AuthLayout from '../../components/AuthLayout';
-import { api } from '../../lib/api';
+import AuthLayout from '../../../components/AuthLayout';
+import { api } from '../../../lib/api';
 
 // Aturan sama dengan backend: min 8 karakter, 1 huruf besar, 1 angka
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
