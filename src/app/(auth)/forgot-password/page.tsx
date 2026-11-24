@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '../../../components/AuthLayout';
 import PageTransition from '../../../components/PageTransition';
+import { api } from '../../../lib/api';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -24,19 +25,10 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      await api('/auth/forgot-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email: cleanEmail }),
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok || data?.success === false) {
-        throw new Error(data?.message || 'Terjadi kesalahan pada server.');
-      }
 
       const targetUrl = `/verify-otp?email=${encodeURIComponent(cleanEmail)}&purpose=reset_password`;
 

@@ -6,6 +6,7 @@ import { MessageCircle, Check } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PageTransition from '../../components/PageTransition';
+import AuthGuard from '../../components/AuthGuard';
 import { api } from '../../lib/api';
 
 interface ApiNotification {
@@ -14,20 +15,21 @@ interface ApiNotification {
   title: string;
   message: string;
   type: string | null;
+  recipe_id?: number | null;
+  reference_id?: number | null;
   is_read: boolean | number;
   created_at: string;
 }
 
-export default function NotifikasiPage() {
+function NotifikasiContent() {
   const router = useRouter();
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<'Semua' | 'Belum Dibaca'>('Semua');
 
-  // Fetch Notifikasi dari Backend menggunakan helper api
   const fetchNotifications = async () => {
     try {
       const result = await api<any>('/notifications');
@@ -48,7 +50,6 @@ export default function NotifikasiPage() {
     fetchNotifications();
   }, []);
 
-  // Filter Data Notifikasi
   const filtered = useMemo(() => {
     if (filter === 'Belum Dibaca') {
       return notifications.filter((n) => !n.is_read);
@@ -60,15 +61,13 @@ export default function NotifikasiPage() {
     return notifications.filter((n) => !n.is_read).length;
   }, [notifications]);
 
-  // Handle Klik Notifikasi (PUT /notifications/:id/read)
   const handleOpenNotif = async (n: ApiNotification) => {
     if (!n.is_read) {
       try {
         await api(`/notifications/${n.id}/read`, {
           method: 'PUT',
         });
-        
-        // Update state lokal
+
         setNotifications((prev) =>
           prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x))
         );
@@ -77,13 +76,17 @@ export default function NotifikasiPage() {
       }
     }
 
-    // Navigasi opsional jika tipe notifikasi berkaitan dengan resep
+    const targetRecipeId = n.recipe_id ?? n.reference_id;
+
     if (n.type === 'komentar' || n.type === 'resep') {
-      router.push('/kader/resep');
+      if (targetRecipeId) {
+        router.push(`/unggah-data/resep?commentRecipeId=${targetRecipeId}`);
+      } else {
+        router.push('/unggah-data/resep');
+      }
     }
   };
 
-  // Handle Tandai Semua Dibaca (PUT /notifications/read-all)
   const handleMarkAllRead = async () => {
     try {
       const result = await api<any>('/notifications/read-all', {
@@ -98,7 +101,6 @@ export default function NotifikasiPage() {
     }
   };
 
-  // Helper Format Waktu Sederhana
   const formatTime = (dateString: string) => {
     if (!dateString) return '';
     const d = new Date(dateString);
@@ -112,25 +114,23 @@ export default function NotifikasiPage() {
 
   return (
     <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
-      <Sidebar 
-        activePage="notifikasi" 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <Sidebar
+        activePage="notifikasi"
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <main className="flex-1 bg-[#B3EAE8] h-full overflow-hidden flex flex-col min-w-0">
-        <Topbar 
-          title="Notifikasi" 
-          titleColor="#D45060" 
-          hideSearch 
-          hideNotif 
-          onMenuClick={() => setSidebarOpen(true)} 
+        <Topbar
+          title="Notifikasi"
+          titleColor="#D45060"
+          hideSearch
+          hideNotif
+          onMenuClick={() => setSidebarOpen(true)}
         />
 
         <PageTransition>
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 md:px-[34px] pt-6 sm:pt-8 md:pt-[32px] pb-8 w-full max-w-full">
-            
-            {/* HEADER */}
             <div className="flex flex-wrap items-center justify-between mb-6 gap-4 w-full">
               <div>
                 <h1 className="font-bold text-black text-[26px] leading-tight">
@@ -153,7 +153,6 @@ export default function NotifikasiPage() {
               )}
             </div>
 
-            {/* FILTER TABS */}
             <div className="flex flex-wrap gap-2 sm:gap-[12px] mb-6 md:mb-[22px]">
               <FilterBtn active={filter === 'Semua'} onClick={() => setFilter('Semua')}>
                 Semua ({notifications.length})
@@ -163,7 +162,6 @@ export default function NotifikasiPage() {
               </FilterBtn>
             </div>
 
-            {/* LIST NOTIFIKASI */}
             {isLoading ? (
               <div className="bg-white rounded-[14px] h-[180px] flex items-center justify-center">
                 <p className="text-black/60 font-medium animate-pulse">Memuat notifikasi...</p>
@@ -249,5 +247,13 @@ function FilterBtn({
     >
       {children}
     </button>
+  );
+}
+
+export default function NotifikasiPage() {
+  return (
+    <AuthGuard role="kader">
+      <NotifikasiContent />
+    </AuthGuard>
   );
 }

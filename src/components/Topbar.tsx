@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CircleUserRound, Bell, MessageCircle, Menu, X } from 'lucide-react';
-import { useProfilFoto } from './profilFoto'; 
+import { useProfilFoto } from './profilFoto';
 import { api } from '../lib/api';
 
 // ================= TYPES =================
@@ -28,6 +29,8 @@ interface ApiNotification {
   title: string;
   message: string;
   type: string | null;
+  recipe_id?: number | null;
+  reference_id?: number | null;
   is_read: boolean | number;
   created_at: string;
 }
@@ -35,13 +38,15 @@ interface ApiNotification {
 // ================= ICON MAP =================
 const ICON_MAP: Record<string, { Icon: typeof MessageCircle; bg: string; color: string }> = {
   komentar: { Icon: MessageCircle, bg: 'bg-[#F88B92]/40', color: 'text-[#DD2E44]' },
+  balasan: { Icon: MessageCircle, bg: 'bg-[#F88B92]/40', color: 'text-[#DD2E44]' },
   default: { Icon: MessageCircle, bg: 'bg-[#F88B92]/40', color: 'text-[#DD2E44]' },
 };
 
 // ================= HELPER =================
 function getNotifHref(n: ApiNotification): string {
-  if (n.type === 'komentar' || n.type === 'resep') {
-    return '/notifikasi';
+  const targetRecipeId = n.recipe_id ?? n.reference_id;
+  if ((n.type === 'komentar' || n.type === 'balasan' || n.type === 'resep') && targetRecipeId) {
+    return `/unggah-data/resep?commentRecipeId=${targetRecipeId}`;
   }
   return '/notifikasi';
 }
@@ -73,6 +78,7 @@ export default function Topbar({
   hideNotif = false,
   onMenuClick,
 }: TopbarProps) {
+  const router = useRouter();
   const [openNotif, setOpenNotif] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
@@ -139,6 +145,26 @@ export default function Topbar({
     setOpenNotif(false);
   };
 
+  // Tandai sudah dibaca saat item notifikasi di dropdown diklik
+  const handleNotifItemClick = async (n: ApiNotification) => {
+    setOpenNotif(false);
+
+    if (!n.is_read) {
+      try {
+        await api(`/notifications/${n.id}/read`, { method: 'PUT' });
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.id === n.id ? { ...item, is_read: true } : item
+          )
+        );
+      } catch (error) {
+        console.error('Gagal menandai notifikasi dibaca:', error);
+      }
+    }
+
+    router.push(getNotifHref(n));
+  };
+
   const computedUnread = notifications.filter((n) => !n.is_read).length;
   const finalCount = notifCount ?? computedUnread;
   const fotoProfil = useProfilFoto();
@@ -152,7 +178,7 @@ export default function Topbar({
     >
       {/* ============ MOBILE: SEARCH MODE ============ */}
       {mobileSearchOpen ? (
-       <div
+        <div
           ref={mobileSearchWrapperRef}
           className="flex items-center gap-2 w-full md:hidden"
         >
@@ -268,11 +294,11 @@ export default function Topbar({
                           const isRead = Boolean(n.is_read);
 
                           return (
-                            <Link
+                            <button
                               key={n.id}
-                              href={getNotifHref(n)}
-                              onClick={() => setOpenNotif(false)}
-                              className={`flex items-start gap-2.5 px-4 py-2.5 border-b border-[#F0F0F0] last:border-b-0 transition-colors cursor-pointer ${
+                              type="button"
+                              onClick={() => handleNotifItemClick(n)}
+                              className={`w-full text-left flex items-start gap-2.5 px-4 py-2.5 border-b border-[#F0F0F0] last:border-b-0 transition-colors cursor-pointer ${
                                 !isRead ? 'bg-[#FEF6F7] hover:bg-[#FCEBED]' : 'hover:bg-[#F7F8F0]'
                               }`}
                             >
@@ -291,7 +317,7 @@ export default function Topbar({
                               {!isRead && (
                                 <span className="shrink-0 mt-2.5 w-1.5 h-1.5 rounded-full bg-[#D45060]" />
                               )}
-                            </Link>
+                            </button>
                           );
                         })
                       )}

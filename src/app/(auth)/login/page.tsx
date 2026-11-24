@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, X } from 'lucide-react';
 import AuthLayout from '../../../components/AuthLayout';
-import PageTransition from '../../../components/PageTransition';
 import {SYARAT_KETENTUAN, KEBIJAKAN_PRIVASI, KEBIJAKAN_PRIVASI_INTRO,} from './syarat-kebijakan';
 import { api, ApiError } from '../../../lib/api';
 import { saveToken } from '../../../lib/auth';
@@ -18,7 +17,6 @@ export default function AdminLoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [agreeInModal, setAgreeInModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

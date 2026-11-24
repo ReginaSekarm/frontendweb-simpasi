@@ -92,7 +92,7 @@ function KonfirmasiBatalModal({
             lineHeight: '26px',
           }}
         >
-          Batalkan Resep Ini?
+          Batalkan Perubahan?
         </h2>
 
         <p

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CaretDown } from '@phosphor-icons/react';
 import Sidebar from '../../components/Sidebar';
@@ -9,22 +8,19 @@ import Topbar from '../../components/Topbar';
 import AuthGuard from '../../components/AuthGuard';
 import { babyService } from '../../services';
 
-import type { Balita, BalitaForm, PemeriksaanForm, FilterType, ToastState, ConfirmDeleteType } from './types';
-import { FILTER_OPTIONS, KONDISI_STYLE, EMPTY_FORM, EMPTY_PEMERIKSAAN } from './data';
+import type { Balita, BalitaForm, FilterType, ToastState, ConfirmDeleteType } from './types';
+import { FILTER_OPTIONS, KONDISI_STYLE, EMPTY_FORM } from './data';
 
 import Toast from './components/Toast';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import BalitaFormModal from './components/BalitaFormModal';
-import PemeriksaanModal from './components/PemeriksaanModal';
 
 const ITEMS_PER_PAGE = 10;
 
-// PERUBAHAN 1: Proporsi kolom dibuat lebih seimbang agar tidak ada gap yang terlalu jauh
 const TABLE_GRID =
   'grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.5fr)]';
 
 // ================= PEMETAAN DATA BACKEND <-> TAMPILAN =================
-// Nilai jenis kelamin yang dikirim ke backend (ubah di sini kalau validator minta format lain)
 const GENDER_KE_BACKEND = { laki: 'L', perempuan: 'P' };
 
 const pick = (o: any, ...keys: string[]): any => {
@@ -46,13 +42,11 @@ const toArray = (d: any): any[] => {
 };
 
 // ================= TANGGAL LAHIR & USIA OTOMATIS =================
-// Nama bulan (Indonesia dan Inggris) -> nomor bulan, dibaca dari 3 huruf pertama
 const NOMOR_BULAN: Record<string, number> = {
   jan: 1, feb: 2, mar: 3, apr: 4, mei: 5, may: 5, jun: 6, jul: 7,
   agu: 8, agt: 8, aug: 8, sep: 9, okt: 10, oct: 10, nov: 11, des: 12, dec: 12,
 };
 
-// Terima: 2025-12-31, 31/12/2025, 31-12-2025, 31.12.2025, "31 Desember 2025", "31 Des 2025"
 const parseTanggal = (v: unknown): Date | null => {
   const s = String(v ?? '').trim();
   if (!s) return null;
@@ -87,7 +81,6 @@ const parseTanggal = (v: unknown): Date | null => {
   return t;
 };
 
-// Ubah ke YYYY-MM-DD (format yang diminta backend)
 const keIso = (v: unknown): string => {
   const t = parseTanggal(v);
   if (!t) return String(v ?? '');
@@ -96,7 +89,6 @@ const keIso = (v: unknown): string => {
   return `${t.getFullYear()}-${mm}-${dd}`;
 };
 
-// Hitung usia dalam bulan dari tanggal lahir; kosong kalau tanggal tidak valid atau di masa depan
 const hitungUsia = (lahir: unknown): string => {
   const t = parseTanggal(lahir);
   if (!t) return '';
@@ -121,12 +113,10 @@ const mapKondisi = (v: any): Balita['kondisi'] => {
   return 'Belum Diperiksa' as Balita['kondisi'];
 };
 
-// Backend -> baris tabel / form edit (toleran terhadap camelCase maupun snake_case)
 const mapBalita = (o: any, i: number): Balita => {
   const lahirRaw = String(pick(o, 'birthDate', 'birth_date', 'tanggalLahir', 'dob'));
   const lahir = parseTanggal(lahirRaw) ? keIso(lahirRaw) : lahirRaw;
 
-  // Usia selalu dihitung dari tanggal lahir supaya tidak basi; kalau tanggal tidak ada, pakai nilai dari backend
   const umur = pick(o, 'ageMonths', 'age_months', 'usiaBulan', 'usia', 'age');
   const usiaBackend =
     typeof umur === 'number' || /^\d+$/.test(String(umur)) ? `${umur} Bulan` : String(umur);
@@ -158,7 +148,6 @@ const mapBalita = (o: any, i: number): Balita => {
 
 const toNum = (v: string): number => Number(String(v).replace(',', '.'));
 
-// Form -> body request (nama field sesuai babyController.ts). Usia tidak dikirim karena dihitung dari tanggal lahir.
 const toBody = (f: BalitaForm): Record<string, unknown> => {
   const body: Record<string, unknown> = {
     fullName: f.nama,
@@ -198,7 +187,7 @@ function IconEdit({ className }: { className?: string }) {
   );
 }
 
-// ================= ICON MASK (ganti warna via bg) =================
+// ================= ICON MASK =================
 type MaskIconProps = {
   src: string;
   alt: string;
@@ -228,7 +217,6 @@ function MaskIcon({ src, alt, className = '', color = '#D45060' }: MaskIconProps
 }
 
 function DataBalitaContent() {
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('Semua');
@@ -245,11 +233,6 @@ function DataBalitaContent() {
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
-
-  const [periksaOpen, setPeriksaOpen] = useState(false);
-  const [periksaBalita, setPeriksaBalita] = useState<Balita | null>(null);
-  const [periksaForm, setPeriksaForm] = useState<PemeriksaanForm>(EMPTY_PEMERIKSAAN);
-  const [periksaErrors, setPeriksaErrors] = useState<Record<string, boolean>>({});
 
   const [toast, setToast] = useState<ToastState>(null);
   const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteType>(null);
@@ -383,7 +366,6 @@ function DataBalitaContent() {
   const handleChangeField = (field: keyof BalitaForm, value: string) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value };
-      // usia dihitung otomatis setiap kali tanggal lahir diisi atau diubah
       if (field === 'tanggalLahir') next.usia = hitungUsia(value);
       return next;
     });
@@ -395,14 +377,12 @@ function DataBalitaContent() {
   };
 
   const validateBalitaForm = (): boolean => {
-    // 'usia' tidak diwajibkan: nilainya turunan dari tanggal lahir
     const required: (keyof BalitaForm)[] = ['nama', 'tempatLahir', 'tanggalLahir', 'namaOrtu', 'email', 'bb', 'tb', 'lk', 'lila'];
     const errs: Record<string, boolean> = {};
     required.forEach((f) => {
       if (!formData[f] || String(formData[f]).trim() === '') errs[f] = true;
     });
 
-    // tanggal lahir harus valid dan tidak di masa depan
     if (!errs.tanggalLahir && hitungUsia(formData.tanggalLahir) === '') errs.tanggalLahir = true;
 
     setFormErrors(errs);
@@ -456,59 +436,6 @@ function DataBalitaContent() {
 
   const handleDelete = () => setConfirmDelete('balita');
 
-  const handleOpenPeriksa = (item: Balita) => {
-    setPeriksaBalita(item);
-    setPeriksaForm({
-      bb: item.bb,
-      tb: item.tb,
-      lk: item.lk,
-      lila: item.lila,
-      catatan: '',
-      bahanMakanan: [],
-      kondisi: item.kondisi === 'Belum Diperiksa' ? 'Normal' : item.kondisi,
-      tanggalPemeriksaan: '',
-    });
-    setPeriksaErrors({});
-    router.push(`/unggah-data?balitaId=${item.id}`);
-  };
-
-  const handleChangePeriksa = (field: keyof PemeriksaanForm, value: string | string[]) => {
-    setPeriksaForm((prev) => ({ ...prev, [field]: value }));
-    if (periksaErrors[field]) setPeriksaErrors((prev) => ({ ...prev, [field]: false }));
-  };
-
-  const handleToggleBahan = (bahan: string) => {
-    setPeriksaForm((prev) => {
-      const isActive = prev.bahanMakanan.includes(bahan);
-      return {
-        ...prev,
-        bahanMakanan: isActive ? prev.bahanMakanan.filter((b) => b !== bahan) : [...prev.bahanMakanan, bahan],
-      };
-    });
-  };
-
-  const validatePeriksaForm = (): boolean => {
-    const required: (keyof PemeriksaanForm)[] = ['bb', 'tb', 'lk', 'lila', 'tanggalPemeriksaan'];
-    const errs: Record<string, boolean> = {};
-    required.forEach((f) => {
-      if (!periksaForm[f] || String(periksaForm[f]).trim() === '') errs[f] = true;
-    });
-    setPeriksaErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSavePeriksa = () => {
-    if (!validatePeriksaForm()) {
-      setToast({ visible: true, type: 'error', title: 'Data Belum Lengkap', message: 'Mohon lengkapi semua kolom yang wajib diisi sebelum menyimpan' });
-      return;
-    }
-    console.log('Simpan pemeriksaan untuk:', periksaBalita?.nama, periksaForm);
-    setPeriksaOpen(false);
-    setToast({ visible: true, type: 'success', title: 'Berhasil Disimpan', message: 'Data pemeriksaan telah berhasil diperbarui dan disimpan' });
-  };
-
-  const handleDeletePeriksa = () => setConfirmDelete('pemeriksaan');
-
   const executeDelete = async () => {
     if (confirmDelete === 'balita') {
       try {
@@ -529,11 +456,6 @@ function DataBalitaContent() {
           message: err?.message || 'Terjadi kesalahan saat menghapus data balita',
         });
       }
-    } else if (confirmDelete === 'pemeriksaan') {
-      console.log('Hapus pemeriksaan untuk:', periksaBalita?.nama);
-      setPeriksaOpen(false);
-      setConfirmDelete(null);
-      setToast({ visible: true, type: 'delete', title: 'Berhasil Dihapus', message: 'Data pemeriksaan telah berhasil dihapus dari sistem.' });
     }
   };
 
@@ -557,7 +479,6 @@ function DataBalitaContent() {
         />
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 pb-4 sm:pb-5">
-          {/* PERUBAHAN 2: Mengubah max-w agar card putih lebih kecil dan isinya merapat */}
           <div className="w-full max-w-[934px] mx-auto">
 
             {/* Pesan error saat gagal memuat data */}
@@ -676,7 +597,6 @@ function DataBalitaContent() {
               ) : (
                 /* KONDISI 3: ADA DATA, tampilkan tabel */
                 <>
-                  {/* HEADER TABEL DIPERBAIKI PADDING-NYA */}
                   <div className={`bg-[#1A7772] min-h-[38px] ${TABLE_GRID} items-center px-3 sm:px-4 text-white font-bold text-[11px] sm:text-[13px] lg:text-[14px]`}>
                     <span className="pl-8">Nama</span>
                     <span className="text-center">Jenis Kelamin</span>
@@ -786,19 +706,6 @@ function DataBalitaContent() {
           onClose={() => setFormOpen(false)}
           onSave={handleSave}
           onDelete={handleDelete}
-        />
-      )}
-
-      {periksaOpen && periksaBalita && (
-        <PemeriksaanModal
-          balita={periksaBalita}
-          data={periksaForm}
-          errors={periksaErrors}
-          onChange={handleChangePeriksa}
-          onToggleBahan={handleToggleBahan}
-          onClose={() => setPeriksaOpen(false)}
-          onSave={handleSavePeriksa}
-          onDelete={handleDeletePeriksa}
         />
       )}
 

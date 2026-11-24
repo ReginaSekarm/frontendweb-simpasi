@@ -70,12 +70,19 @@ function IconFire({ className }: { className?: string }) {
 
 type Props = {
   resep: Resep;
+  isActive?: boolean;
   onEdit: (resep: Resep) => void;
   onDelete: (resep: Resep) => void;
   onCommentClick: (resep: Resep) => void;
 };
 
-export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: Props) {
+export default function ResepCard({
+  resep,
+  isActive = false,
+  onEdit,
+  onDelete,
+  onCommentClick,
+}: Props) {
   const isDraft = resep.status === 'Draft';
   const commentCount = isDraft ? 0 : (resep.commentsCount ?? 0);
 
@@ -85,7 +92,13 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
   };
 
   return (
-    <div className="bg-white border-[1.1px] border-[#8F8F8F] rounded-[11px] overflow-hidden flex flex-col w-full max-w-[158px] px-[11px] pt-[15px] pb-[8.5px]">
+    <div
+      className={`bg-white rounded-[11px] overflow-hidden flex flex-col w-full max-w-[158px] px-[11px] pt-[15px] pb-[8.5px] transition-all ${
+        isActive
+          ? 'border-[1.5px] border-[#D45060] ring-2 ring-[#D45060]/30 shadow-sm'
+          : 'border-[1.1px] border-[#8F8F8F]'
+      }`}
+    >
       {/* Image + badge usia */}
       <div className="relative w-full aspect-[137.2/135] bg-[#D9D9D9] rounded-[11px] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,7 +106,9 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
           src={resep.image}
           alt={resep.nama}
           className="w-full h-full object-cover"
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
         <span className="absolute top-[7.7px] left-[8.8px] h-[17.56px] min-w-[67px] px-[10px] bg-[#FFB636] rounded-full text-white font-normal text-[11px] leading-[13px] flex items-center justify-center whitespace-nowrap">
           {resep.usia}
@@ -115,7 +130,6 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
 
         <div className="flex items-center gap-[2px] shrink-0">
           <IconFire className="w-[12px] h-[12px] shrink-0" />
-          {/* PERBAIKAN: Menghapus teks "kkal" ekstra agar tidak double menjadi "0 kkal kkal" */}
           <span className="text-black font-normal text-[10px] leading-[13px] whitespace-nowrap">
             {resep.kalori}
           </span>
@@ -130,17 +144,21 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
           disabled={isDraft}
           aria-label={
             isDraft
-              ? `Komentar tidak tersedia untuk resep draft`
+              ? 'Komentar tidak tersedia untuk resep draft'
               : `Lihat komentar ${resep.nama}`
           }
           className={`relative w-[30px] h-[30px] rounded-full flex items-center justify-center shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors ${
             isDraft
               ? 'bg-[#F5F5F5]/60 cursor-not-allowed opacity-40'
-              : 'bg-[#F5F5F5] hover:bg-[#E8E8E8] cursor-pointer'
+              : isActive
+                ? 'bg-[#FCEBED] ring-1 ring-[#D45060]/40 cursor-pointer'
+                : 'bg-[#F5F5F5] hover:bg-[#E8E8E8] cursor-pointer'
           }`}
         >
           <MessageCircle
-            className={`w-[14.29px] h-[14.29px] ${isDraft ? 'text-[#8F8F8F]' : 'text-black'}`}
+            className={`w-[14.29px] h-[14.29px] ${
+              isDraft ? 'text-[#8F8F8F]' : isActive ? 'text-[#D45060]' : 'text-black'
+            }`}
             strokeWidth={2.2}
           />
 
@@ -156,7 +174,7 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
             type="button"
             onClick={() => onEdit(resep)}
             aria-label={`Edit ${resep.nama}`}
-            className="cursor-pointer"
+            className="cursor-pointer hover:opacity-75 transition-opacity"
           >
             <IconEdit className="w-[16.46px] h-[16.46px] text-black/70" />
           </button>
@@ -164,7 +182,7 @@ export default function ResepCard({ resep, onEdit, onDelete, onCommentClick }: P
             type="button"
             onClick={() => onDelete(resep)}
             aria-label={`Hapus ${resep.nama}`}
-            className="cursor-pointer"
+            className="cursor-pointer hover:opacity-75 transition-opacity"
           >
             <IconTrash className="w-[16.46px] h-[16.46px] text-[#FF0020]" />
           </button>

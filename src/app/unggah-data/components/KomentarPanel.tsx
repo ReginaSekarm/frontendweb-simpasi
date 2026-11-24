@@ -78,8 +78,6 @@ const mapKomentar = (c: any): KomentarData => ({
   repliesLoaded: false,
 });
 
-const namaDepan = (nama: string): string => nama.trim().split(/\s+/)[0] || nama;
-
 // ================= AVATAR =================
 function Avatar({ size, foto }: { size: number; foto?: string }) {
   const [gagal, setGagal] = useState(false);
@@ -148,18 +146,43 @@ function MetaRow({
   );
 }
 
-// ================= TEKS (tag @nama berwarna biru) =================
-function CommentText({ text, className }: { text: string; className: string }) {
+// ================= TEKS (hanya @nama user berwarna biru, isi balasan tetap hitam) =================
+function CommentText({
+  text,
+  className,
+  mentionNames = [],
+}: {
+  text: string;
+  className: string;
+  mentionNames?: string[];
+}) {
+  const sortedNames = [...new Set(mentionNames.map((n) => n.trim()).filter(Boolean))].sort(
+    (a, b) => b.length - a.length
+  );
+
+  for (const name of sortedNames) {
+    const prefix = `@${name}`;
+    if (text === prefix || text.startsWith(`${prefix} `) || text.startsWith(`${prefix}\n`)) {
+      return (
+        <p className={`${className} break-words whitespace-pre-line`}>
+          <span className="text-[#006199]">{prefix}</span>
+          {text.slice(prefix.length)}
+        </p>
+      );
+    }
+  }
+
   const m = text.match(/^(@\S+)(\s[\s\S]*)?$/);
   if (m) {
     return (
-      <p className={className}>
+      <p className={`${className} break-words whitespace-pre-line`}>
         <span className="text-[#006199]">{m[1]}</span>
         {m[2]}
       </p>
     );
   }
-  return <p className={className}>{text}</p>;
+
+  return <p className={`${className} break-words whitespace-pre-line`}>{text}</p>;
 }
 
 // ================= POPUP TRIPLE DOT =================
@@ -429,9 +452,8 @@ export default function KomentarPanel({ resep, onClose }: Props) {
   const countBelumDibalas = komentar.filter((k) => k.replyCount === 0).length;
 
   return (
-    <aside className="w-[320px] shrink-0 bg-white border-l border-[#D9D9D9] flex flex-col h-full font-sans">
-
-      <div className="px-4 pt-4 pb-0">
+    <aside className="w-full h-full bg-white flex flex-col font-sans overflow-hidden">
+      <div className="px-4 pt-4 pb-0 select-none">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-[16px] font-bold text-black leading-tight shrink-0">
@@ -514,150 +536,159 @@ export default function KomentarPanel({ resep, onClose }: Props) {
             </button>
           </div>
         ) : (
-          filteredKomentar.map((k) => (
-            <div
-              key={k.id}
-              className="flex flex-col gap-1.5 pb-3 border-b border-[rgba(143,143,143,0.8)] last:border-b-0"
-            >
-              <div className="flex gap-2">
-                <Avatar size={28} foto={isMine(k.userId) ? fotoProfil : undefined} />
+          filteredKomentar.map((k) => {
+            const threadNames = [k.nama, ...k.replies.map((r) => r.nama)];
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="text-[12px] font-bold text-black truncate">{k.nama}</span>
-                      <MetaRow waktu={k.waktu} isCreator={isMine(k.userId)} fontSize={10} />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => openMenu(k.id, k.userId)}
-                      aria-label="Menu komentar"
-                      className="shrink-0 w-[20px] h-[20px] rounded-full flex items-center justify-center text-black hover:bg-black/5 transition-colors cursor-pointer"
-                    >
-                      <MoreHorizontal className="w-[14px] h-[14px]" strokeWidth={2.4} />
-                    </button>
-                  </div>
+            return (
+              <div
+                key={k.id}
+                className="flex flex-col gap-1.5 pb-3 border-b border-[rgba(143,143,143,0.8)] last:border-b-0"
+              >
+                <div className="flex gap-2">
+                  <Avatar size={28} foto={isMine(k.userId) ? fotoProfil : undefined} />
 
-                  {isEditing(k.id) ? (
-                    renderEditForm()
-                  ) : (
-                    <CommentText text={k.text} className="text-[11px] text-black leading-[15px] mb-1.5" />
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    {k.replyCount > 0 && (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[12px] font-bold text-black truncate">{k.nama}</span>
+                        <MetaRow waktu={k.waktu} isCreator={isMine(k.userId)} fontSize={10} />
+                      </div>
                       <button
-                        onClick={() => toggleThread(k.id)}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-[#797777] cursor-pointer"
+                        type="button"
+                        onClick={() => openMenu(k.id, k.userId)}
+                        aria-label="Menu komentar"
+                        className="shrink-0 w-[20px] h-[20px] rounded-full flex items-center justify-center text-black hover:bg-black/5 transition-colors cursor-pointer"
                       >
-                        {expandedThreads[k.id] ? (
-                          <ChevronUp size={12} strokeWidth={3} />
-                        ) : (
-                          <ChevronDown size={12} strokeWidth={3} />
-                        )}
-                        {expandedThreads[k.id] ? 'Sembunyikan balasan' : `${k.replyCount} balasan`}
+                        <MoreHorizontal className="w-[14px] h-[14px]" strokeWidth={2.4} />
                       </button>
+                    </div>
+
+                    {isEditing(k.id) ? (
+                      renderEditForm()
+                    ) : (
+                      <CommentText
+                        text={k.text}
+                        mentionNames={threadNames}
+                        className="text-[11px] text-black leading-[15px] mb-1.5"
+                      />
                     )}
-                    <button
-                      onClick={() => {
-                        setReplyOpenId(k.id);
-                        setReplyText('');
-                      }}
-                      className="text-[10px] font-semibold text-[#797777] cursor-pointer"
-                    >
-                      Balas
-                    </button>
-                  </div>
 
-                  {expandedThreads[k.id] && k.replies.length > 0 && (
-                    <div
-                      className="mt-3 flex flex-col gap-3"
-                      style={{
-                        marginLeft: 6,
-                        paddingLeft: 12,
-                        borderLeft: '1.5px solid rgba(143,143,143,0.8)',
-                      }}
-                    >
-                      {k.replies.map((reply) => (
-                        <div key={reply.id} className="flex gap-2">
-                          <Avatar size={24} foto={isMine(reply.userId) ? fotoProfil : undefined} />
+                    <div className="flex items-center gap-3 select-none">
+                      {k.replyCount > 0 && (
+                        <button
+                          onClick={() => toggleThread(k.id)}
+                          className="flex items-center gap-1 text-[10px] font-semibold text-[#797777] cursor-pointer"
+                        >
+                          {expandedThreads[k.id] ? (
+                            <ChevronUp size={12} strokeWidth={3} />
+                          ) : (
+                            <ChevronDown size={12} strokeWidth={3} />
+                          )}
+                          {expandedThreads[k.id] ? 'Sembunyikan balasan' : `${k.replyCount} balasan`}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setReplyOpenId(k.id);
+                          setReplyText(`@${k.nama.trim()} `);
+                        }}
+                        className="text-[10px] font-semibold text-[#797777] cursor-pointer"
+                      >
+                        Balas
+                      </button>
+                    </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center mb-0.5">
-                              <div className="flex items-center gap-1 min-w-0">
-                                <span className="text-[11px] font-semibold text-black truncate">
-                                  {reply.nama}
-                                </span>
-                                <MetaRow
-                                  waktu={reply.waktu}
-                                  isCreator={isMine(reply.userId)}
-                                  fontSize={9}
-                                />
+                    {expandedThreads[k.id] && k.replies.length > 0 && (
+                      <div
+                        className="mt-3 flex flex-col gap-3"
+                        style={{
+                          marginLeft: 6,
+                          paddingLeft: 12,
+                          borderLeft: '1.5px solid rgba(143,143,143,0.8)',
+                        }}
+                      >
+                        {k.replies.map((reply) => (
+                          <div key={reply.id} className="flex gap-2">
+                            <Avatar size={24} foto={isMine(reply.userId) ? fotoProfil : undefined} />
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-center mb-0.5">
+                                <div className="flex items-center gap-1 min-w-0">
+                                  <span className="text-[11px] font-semibold text-black truncate">
+                                    {reply.nama}
+                                  </span>
+                                  <MetaRow
+                                    waktu={reply.waktu}
+                                    isCreator={isMine(reply.userId)}
+                                    fontSize={9}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => openMenu(k.id, reply.userId, reply.id)}
+                                  aria-label="Menu balasan"
+                                  className="shrink-0 w-[18px] h-[18px] rounded-full flex items-center justify-center text-black hover:bg-black/5 transition-colors cursor-pointer"
+                                >
+                                  <MoreHorizontal className="w-[12px] h-[12px]" strokeWidth={2.4} />
+                                </button>
                               </div>
+
+                              {isEditing(k.id, reply.id) ? (
+                                renderEditForm()
+                              ) : (
+                                <CommentText
+                                  text={reply.text}
+                                  mentionNames={threadNames}
+                                  className="text-[10px] text-black leading-[14px] mb-0.5"
+                                />
+                              )}
+
+                              {/* Balasan hanya 1 tingkat (aturan backend): membalas balasan = membalas komentar induknya dengan tag @nama */}
                               <button
-                                type="button"
-                                onClick={() => openMenu(k.id, reply.userId, reply.id)}
-                                aria-label="Menu balasan"
-                                className="shrink-0 w-[18px] h-[18px] rounded-full flex items-center justify-center text-black hover:bg-black/5 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  setReplyOpenId(k.id);
+                                  setReplyText(`@${reply.nama.trim()} `);
+                                }}
+                                className="text-[10px] text-[#8F8F8F] hover:text-[#D45060] cursor-pointer select-none"
                               >
-                                <MoreHorizontal className="w-[12px] h-[12px]" strokeWidth={2.4} />
+                                Balas
                               </button>
                             </div>
-
-                            {isEditing(k.id, reply.id) ? (
-                              renderEditForm()
-                            ) : (
-                              <CommentText
-                                text={reply.text}
-                                className="text-[10px] text-black leading-[14px] mb-0.5"
-                              />
-                            )}
-
-                            {/* Balasan hanya 1 tingkat (aturan backend): membalas balasan = membalas komentar induknya dengan tag @nama */}
-                            <button
-                              onClick={() => {
-                                setReplyOpenId(k.id);
-                                setReplyText(`@${namaDepan(reply.nama)} `);
-                              }}
-                              className="text-[10px] text-[#8F8F8F] hover:text-[#D45060] cursor-pointer"
-                            >
-                              Balas
-                            </button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {replyOpenId === k.id && (
-                <div className="mt-1 flex items-center gap-1.5 rounded-[8px] border border-[#D45060] px-2.5 py-1.5 bg-white w-full">
-                  <input
-                    type="text"
-                    autoFocus
-                    maxLength={500}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSendReply(k.id);
-                    }}
-                    placeholder="Tulis balasan..."
-                    className="flex-1 text-[11px] text-black placeholder-black focus:outline-none bg-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSendReply(k.id)}
-                    disabled={sending}
-                    aria-label="Kirim balasan"
-                    className="shrink-0 p-0.5 text-[#D45060] hover:bg-[#D45060]/10 rounded-full transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    <Send className="w-[14px] h-[14px]" strokeWidth={2} />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
+                {replyOpenId === k.id && (
+                  <div className="mt-1 flex items-center gap-1.5 rounded-[8px] border border-[#D45060] px-2.5 py-1.5 bg-white w-full">
+                    <input
+                      type="text"
+                      autoFocus
+                      maxLength={500}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSendReply(k.id);
+                      }}
+                      placeholder="Tulis balasan..."
+                      className="flex-1 min-w-0 text-[11px] text-black placeholder-[#8F8F8F] focus:outline-none bg-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSendReply(k.id)}
+                      disabled={sending}
+                      aria-label="Kirim balasan"
+                      className="shrink-0 p-0.5 text-[#D45060] hover:bg-[#D45060]/10 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-[14px] h-[14px]" strokeWidth={2} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 

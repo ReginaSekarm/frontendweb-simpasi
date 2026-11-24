@@ -249,6 +249,36 @@ function UnggahDataContent() {
   const [toast, setToast] = useState<ToastState>(null);
   const [commentPanelResep, setCommentPanelResep] = useState<Resep | null>(null);
 
+  // State untuk lebar panel komentar yang bisa ditarik (resize)
+  const [commentPanelWidth, setCommentPanelWidth] = useState(380);
+  const [isResizingPanel, setIsResizingPanel] = useState(false);
+
+  useEffect(() => {
+    if (!isResizingPanel) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      const clampedWidth = Math.min(Math.max(newWidth, 320), 620);
+      setCommentPanelWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingPanel(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingPanel]);
+
   const [deleteTargetResep, setDeleteTargetResep] = useState<Resep | null>(null);
 
   const [openResepModal, setOpenResepModal] = useState(false);
@@ -315,7 +345,6 @@ function UnggahDataContent() {
             calculatedAge = Math.max(0, diffMonths);
           }
 
-          // Format kapitalisasi kondisi agar pas dengan Figma ("Berisiko", "Normal", "Stunting")
           let rawKondisi = b.condition_note || b.status || 'Normal';
           if (typeof rawKondisi === 'string') {
             rawKondisi = rawKondisi.charAt(0).toUpperCase() + rawKondisi.slice(1).toLowerCase();
@@ -364,6 +393,29 @@ function UnggahDataContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, resepList]);
+
+  useEffect(() => {
+    const commentRecipeIdParam = searchParams.get('commentRecipeId');
+    if (!commentRecipeIdParam) {
+      setCommentPanelResep(null);
+      return;
+    }
+    if (resepList.length === 0) return;
+    const found = resepList.find((r) => Number(r.id) === Number(commentRecipeIdParam));
+    if (found) {
+      setCommentPanelResep(found);
+    }
+  }, [searchParams, resepList]);
+
+  const handleOpenCommentPanel = (r: Resep) => {
+    setCommentPanelResep(r);
+    router.replace(`/unggah-data/resep?commentRecipeId=${r.id}`, { scroll: false });
+  };
+
+  const handleCloseCommentPanel = () => {
+    setCommentPanelResep(null);
+    router.replace('/unggah-data/resep', { scroll: false });
+  };
 
   const handleAddResep = () => {
     setEditingResepId(null);
@@ -426,7 +478,6 @@ function UnggahDataContent() {
       return;
     }
 
-    // Cek duplikasi nama resep (baik untuk publikasi maupun draft, kecualikan ID yang sedang diedit)
     const isDuplicateTitle = resepList.some(
       (r) =>
         Number(r.id) !== Number(editingResepId) &&
@@ -456,7 +507,6 @@ function UnggahDataContent() {
       return;
     }
 
-    // Cek duplikasi foto menu (berdasarkan hash isi file gambar)
     let uploadedImageHash: string | null = null;
     if (resepForm.image) {
       uploadedImageHash = await computeFileHash(resepForm.image);
@@ -500,7 +550,6 @@ function UnggahDataContent() {
       }
     }
 
-    // Validasi detail nutrisi: jika diisi wajib angka valid (baik draft maupun publikasi)
     const stripUnit = (val: string) =>
       val.trim().replace(/\s*(kkal|gr|g)$/i, '').trim();
 
@@ -630,7 +679,9 @@ function UnggahDataContent() {
       await api(`/recipes/${deletedId}`, { method: 'DELETE' });
       removeImageHashByRecipeId(deletedId);
       setToast({ visible: true, type: 'success', title: 'Berhasil', message: 'Resep berhasil dihapus.' });
-      if (commentPanelResep?.id === deleteTargetResep.id) setCommentPanelResep(null);
+      if (Number(commentPanelResep?.id) === deletedId) {
+        handleCloseCommentPanel();
+      }
       setDeleteTargetResep(null);
       fetchResepList();
     } catch (err: any) {
@@ -654,7 +705,7 @@ function UnggahDataContent() {
   const emptyState = getEmptyStateConfig(filterResep, searchResep);
 
   return (
-    <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] select-none overflow-hidden">
+    <div className="h-screen w-full bg-white flex font-['Inter',sans-serif] overflow-hidden">
       <Sidebar
         activePage="unggah-data"
         isOpen={sidebarOpen}
@@ -669,9 +720,8 @@ function UnggahDataContent() {
         />
 
         <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 pb-4 sm:pb-5">
-            {/* LAYOUT FIGMA: satu kolom terpusat, lebar sama untuk tab, panel, dan kartu */}
-            <div className="mx-auto w-full max-w-[934px]">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-4 lg:px-6 pt-4 sm:pt-5 pb-4 sm:pb-5">
+            <div className="max-w-[934px] mx-auto w-full">
               <div className="flex items-center justify-between mb-4 sm:mb-5 gap-3">
                 <div className="flex-1 max-w-[420px] h-[44px] sm:h-[52px] bg-[#FEEB96] rounded-[10px] sm:rounded-[12px] p-[4px] sm:p-[6px] flex">
                   {(['Pemeriksaan', 'Resep'] as const).map((tab) => (
@@ -780,7 +830,7 @@ function UnggahDataContent() {
               {activeTab === 'Resep' && (
                 <>
                   <div className="bg-white rounded-[12px] px-4 sm:px-5 pt-4 pb-4 mb-4 sm:mb-5">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
                       {(['Semua', 'Draft', 'Terpublikasi'] as const).map((tabKey) => {
                         const isActive = filterResep === tabKey;
                         const labelText =
@@ -817,15 +867,15 @@ function UnggahDataContent() {
                   {filteredResep.length === 0 ? (
                     <EmptyState config={emptyState} onCtaClick={handleAddResep} />
                   ) : (
-                    // LAYOUT FIGMA: kartu dibagi rata dari tepi kiri ke tepi kanan kolom
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fill,160px)] md:justify-between gap-3 sm:gap-4 md:gap-y-[26px]">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fill,160px)] gap-3 sm:gap-4 md:gap-x-[24px] md:gap-y-[24px]">
                       {filteredResep.map((resep) => (
                         <ResepCard
                           key={resep.id}
                           resep={resep}
+                          isActive={Number(commentPanelResep?.id) === Number(resep.id)}
                           onEdit={(r) => handleEditResep(r)}
                           onDelete={(r) => setDeleteTargetResep(r)}
-                          onCommentClick={(r) => setCommentPanelResep(r)}
+                          onCommentClick={handleOpenCommentPanel}
                         />
                       ))}
                     </div>
@@ -836,11 +886,34 @@ function UnggahDataContent() {
           </div>
 
           {commentPanelResep && (
-            <KomentarPanel
-              key={commentPanelResep.id}
-              resep={commentPanelResep}
-              onClose={() => setCommentPanelResep(null)}
-            />
+            <div
+              className="relative flex h-full shrink-0 bg-white border-l border-[#D9D9D9]"
+              style={{ width: `${commentPanelWidth}px` }}
+            >
+              {/* GARIS TARIK (DRAG HANDLE) DI SISI KIRI PANEL */}
+              <div
+                onMouseDown={() => setIsResizingPanel(true)}
+                title="Tarik ke kiri/kanan untuk mengubah ukuran panel komentar"
+                className={`w-[6px] h-full cursor-col-resize flex items-center justify-center group transition-colors z-20 shrink-0 ${
+                  isResizingPanel ? 'bg-[#D45060]/40' : 'hover:bg-[#D45060]/25 bg-transparent'
+                }`}
+              >
+                <div
+                  className={`w-[2px] h-[36px] rounded-full transition-colors ${
+                    isResizingPanel ? 'bg-[#D45060]' : 'bg-[#D9D9D9] group-hover:bg-[#D45060]'
+                  }`}
+                />
+              </div>
+
+              {/* ISI PANEL KOMENTAR MENGIKUTI LEBAR WRAPPER */}
+              <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden [&>*]:!w-full [&>*]:!max-w-none">
+                <KomentarPanel
+                  key={commentPanelResep.id}
+                  resep={commentPanelResep}
+                  onClose={handleCloseCommentPanel}
+                />
+              </div>
+            </div>
           )}
         </div>
       </main>
