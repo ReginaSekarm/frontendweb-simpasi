@@ -217,10 +217,10 @@ function PengaturanContent() {
 
       setNoHp(String(pick(d, 'phone')));
       setNamaPosyandu(String(pick(d, 'posyandu_name', 'posyanduName')) || '-');
-      setJabatan(String(pick(d, 'role')) || 'Kader Gizi');
+      setJabatan(String(pick(d, 'position', 'role')) || 'Kader Gizi');
       setWilayah(String(pick(d, 'region')) || '-');
 
-      const dibuat = String(pick(d, 'created_at', 'createdAt'));
+      const dibuat = String(pick(d, 'joined_at', 'joinedAt', 'created_at', 'createdAt'));
       setTanggalBergabung(
         dibuat
           ? new Date(dibuat).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
