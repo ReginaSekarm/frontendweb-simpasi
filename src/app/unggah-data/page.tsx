@@ -234,18 +234,17 @@ function UnggahDataContent() {
 
   const handleTabClick = (tab: 'Pemeriksaan' | 'Resep') => {
     setActiveTab(tab);
-    if (tab === 'Resep') {
-      router.push('/unggah-data/resep');
-    } else {
-      router.push('/unggah-data');
-    }
+    const targetUrl = tab === 'Resep' ? '/unggah-data/resep' : '/unggah-data';
+    window.history.replaceState(null, '', targetUrl);
   };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResep, setSearchResep] = useState('');
   const [filterResep, setFilterResep] = useState<FilterResepType>('Semua');
   const [resepList, setResepList] = useState<Resep[]>([]);
+  const [isLoadingResep, setIsLoadingResep] = useState(true);
   const [balitaList, setBalitaList] = useState<any[]>([]);
+  const [isLoadingBalita, setIsLoadingBalita] = useState(true);
   const [toast, setToast] = useState<ToastState>(null);
   const [commentPanelResep, setCommentPanelResep] = useState<Resep | null>(null);
 
@@ -304,6 +303,7 @@ function UnggahDataContent() {
   const pemeriksaan = usePemeriksaanForm(setToast);
 
   const fetchResepList = async () => {
+    setIsLoadingResep(true);
     try {
       const res = await api<any>('/kader/recipes');
       if (res.success && res.data) {
@@ -329,10 +329,13 @@ function UnggahDataContent() {
       }
     } catch (err) {
       console.error('Gagal memuat daftar resep:', err);
+    } finally {
+      setIsLoadingResep(false);
     }
   };
 
   const fetchBalitaList = async () => {
+    setIsLoadingBalita(true);
     try {
       const res = await api<any>('/babies/all');
       if (res.success && res.data) {
@@ -363,6 +366,8 @@ function UnggahDataContent() {
       }
     } catch (err) {
       console.error('Gagal memuat daftar balita:', err);
+    } finally {
+      setIsLoadingBalita(false);
     }
   };
 
@@ -403,18 +408,19 @@ function UnggahDataContent() {
     if (resepList.length === 0) return;
     const found = resepList.find((r) => Number(r.id) === Number(commentRecipeIdParam));
     if (found) {
+      setActiveTab('Resep');
       setCommentPanelResep(found);
     }
   }, [searchParams, resepList]);
 
   const handleOpenCommentPanel = (r: Resep) => {
     setCommentPanelResep(r);
-    router.replace(`/unggah-data/resep?commentRecipeId=${r.id}`, { scroll: false });
+    window.history.replaceState(null, '', `/unggah-data/resep?commentRecipeId=${r.id}`);
   };
 
   const handleCloseCommentPanel = () => {
     setCommentPanelResep(null);
-    router.replace('/unggah-data/resep', { scroll: false });
+    window.history.replaceState(null, '', '/unggah-data/resep');
   };
 
   const handleAddResep = () => {
@@ -662,7 +668,9 @@ function UnggahDataContent() {
       setEditingResepId(null);
       setFotoLamaUrl('');
 
-      if (searchParams.get('resepId')) router.replace('/unggah-data/resep');
+      if (searchParams.get('resepId')) {
+        window.history.replaceState(null, '', '/unggah-data/resep');
+      }
 
       fetchResepList();
     } catch (err: any) {
@@ -701,7 +709,7 @@ function UnggahDataContent() {
   const countDraft = resepList.filter((r) => r.status === 'Draft').length;
   const countTerpublikasi = resepList.filter((r) => r.status === 'Terpublikasi').length;
 
-  const belumAdaPemeriksaan = balitaList.length === 0;
+  const belumAdaPemeriksaan = !isLoadingBalita && balitaList.length === 0;
   const emptyState = getEmptyStateConfig(filterResep, searchResep);
 
   return (
@@ -753,7 +761,11 @@ function UnggahDataContent() {
               </div>
 
               {activeTab === 'Pemeriksaan' && (
-                belumAdaPemeriksaan ? (
+                isLoadingBalita ? (
+                  <div className="bg-white rounded-[7px] py-16 flex items-center justify-center">
+                    <p className="text-[13px] font-semibold text-black/60">Memuat data balita...</p>
+                  </div>
+                ) : belumAdaPemeriksaan ? (
                   <EmptyState config={EMPTY_PEMERIKSAAN} />
                 ) : (
                   <div className="bg-white rounded-[7px] px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
@@ -864,7 +876,11 @@ function UnggahDataContent() {
                     />
                   </div>
 
-                  {filteredResep.length === 0 ? (
+                  {isLoadingResep ? (
+                    <div className="py-16 flex items-center justify-center">
+                      <p className="text-[13px] font-semibold text-black/60">Memuat daftar resep...</p>
+                    </div>
+                  ) : filteredResep.length === 0 ? (
                     <EmptyState config={emptyState} onCtaClick={handleAddResep} />
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fill,160px)] gap-3 sm:gap-4 md:gap-x-[24px] md:gap-y-[24px]">
