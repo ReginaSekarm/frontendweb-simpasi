@@ -488,7 +488,7 @@ function DataBalitaContent() {
               </div>
             )}
 
-            <div className={`bg-white rounded-[7px] overflow-hidden ${
+            <div className={`bg-white rounded-[7px] overflow-visible ${
             loading || isDataEmpty || isFilterEmpty
               ? 'flex flex-col min-h-[460px] sm:min-h-[500px] lg:min-h-[561px]'
               : ''

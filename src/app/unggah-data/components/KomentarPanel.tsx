@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, X, ChevronDown, ChevronUp, MoreHorizontal, User } from 'lucide-react';
 import type { Resep } from '../types';
 import { api } from '../../../lib/api';
@@ -253,12 +253,19 @@ export default function KomentarPanel({ resep, onClose }: Props) {
   const [expandedThreads, setExpandedThreads] = useState<Record<number, boolean>>({});
   const [replyOpenId, setReplyOpenId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
+  const replyInputRef = useRef<HTMLInputElement>(null);
 
   const [menuTarget, setMenuTarget] = useState<MenuTarget>(null);
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
   const [editText, setEditText] = useState('');
 
   const isMine = (userId: number) => myId !== null && userId === myId;
+
+  const openReplyBox = (komentarId: number, targetName: string) => {
+    setReplyOpenId(komentarId);
+    setReplyText(`@${targetName.trim()} `);
+    setTimeout(() => replyInputRef.current?.focus(), 0);
+  };
 
   // ---------- Ambil komentar resep ini dari backend ----------
   useEffect(() => {
@@ -588,10 +595,7 @@ export default function KomentarPanel({ resep, onClose }: Props) {
                         </button>
                       )}
                       <button
-                        onClick={() => {
-                          setReplyOpenId(k.id);
-                          setReplyText(`@${k.nama.trim()} `);
-                        }}
+                        onClick={() => openReplyBox(k.id, k.nama)}
                         className="text-[10px] font-semibold text-[#797777] cursor-pointer"
                       >
                         Balas
@@ -645,10 +649,7 @@ export default function KomentarPanel({ resep, onClose }: Props) {
 
                               {/* Balasan hanya 1 tingkat (aturan backend): membalas balasan = membalas komentar induknya dengan tag @nama */}
                               <button
-                                onClick={() => {
-                                  setReplyOpenId(k.id);
-                                  setReplyText(`@${reply.nama.trim()} `);
-                                }}
+                                onClick={() => openReplyBox(k.id, reply.nama)}
                                 className="text-[10px] text-[#8F8F8F] hover:text-[#D45060] cursor-pointer select-none"
                               >
                                 Balas
@@ -664,6 +665,7 @@ export default function KomentarPanel({ resep, onClose }: Props) {
                 {replyOpenId === k.id && (
                   <div className="mt-1 flex items-center gap-1.5 rounded-[8px] border border-[#D45060] px-2.5 py-1.5 bg-white w-full">
                     <input
+                      ref={replyInputRef}
                       type="text"
                       autoFocus
                       maxLength={500}
